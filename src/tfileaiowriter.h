@@ -1,14 +1,11 @@
-#ifndef TFILEAIOWRITER_H
-#define TFILEAIOWRITER_H
-
+#pragma once
 #include <QString>
 #include <TGlobal>
 
 class TFileAioWriterData;
 
 
-class T_CORE_EXPORT TFileAioWriter
-{
+class T_CORE_EXPORT TFileAioWriter {
 public:
     TFileAioWriter(const QString &name = QString());
     ~TFileAioWriter();
@@ -28,4 +25,3 @@ private:
     T_DISABLE_MOVE(TFileAioWriter)
 };
 
-#endif // TFILEAIOWRITER_H

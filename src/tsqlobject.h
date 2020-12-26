@@ -1,18 +1,15 @@
-#ifndef TSQLOBJECT_H
-#define TSQLOBJECT_H
-
-#include <QObject>
-#include <QSqlRecord>
-#include <QSqlError>
+#pragma once
 #include <QDateTime>
-#include <QVariantMap>
+#include <QObject>
+#include <QSqlError>
+#include <QSqlRecord>
 #include <QStringList>
+#include <QVariantMap>
 #include <TGlobal>
 #include <TModelObject>
 
 
-class T_CORE_EXPORT TSqlObject : public TModelObject, public QSqlRecord
-{
+class T_CORE_EXPORT TSqlObject : public TModelObject, public QSqlRecord {
     Q_OBJECT
 public:
     TSqlObject();
@@ -42,4 +39,3 @@ protected:
     QSqlError sqlError;
 };
 
-#endif // TSQLOBJECT_H

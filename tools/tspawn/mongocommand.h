@@ -1,14 +1,11 @@
-#ifndef MONGOCOMMAND_H
-#define MONGOCOMMAND_H
-
-#include <TGlobal>
+#pragma once
 #include <QStringList>
+#include <TGlobal>
 
 class TMongoDriver;
 
 
-class MongoCommand
-{
+class MongoCommand {
 public:
     MongoCommand(const QString &path);
     ~MongoCommand();
@@ -26,4 +23,3 @@ private:
     T_DISABLE_MOVE(MongoCommand)
 };
 
-#endif // MONGOCOMMAND_H

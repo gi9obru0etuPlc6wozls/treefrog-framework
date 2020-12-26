@@ -5,34 +5,34 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <QtCore>
-#include <QtNetwork>
-#include <TGlobal>
-#include <TWebApplication>
-#include <TSystemGlobal>
-#include <TApplicationServerBase>
-#include <TAppSettings>
-#include <TLog>
-#include "qplatformdefs.h"
 #include "servermanager.h"
+#include "qplatformdefs.h"
 #include "systembusdaemon.h"
 #include "tfcore.h"
+#include <QtCore>
+#include <QtNetwork>
+#include <TAppSettings>
+#include <TApplicationServerBase>
+#include <TGlobal>
+#include <TLog>
+#include <TSystemGlobal>
+#include <TWebApplication>
 
 namespace TreeFrog {
 
 #if defined(Q_OS_WIN) && !defined(TF_NO_DEBUG)
-#  define TFSERVER_CMD  INSTALL_PATH "/tadpoled"
+constexpr auto TFSERVER_CMD = INSTALL_PATH "/tadpoled";
 #else
-#  define TFSERVER_CMD  INSTALL_PATH "/tadpole"
+constexpr auto TFSERVER_CMD = INSTALL_PATH "/tadpole";
 #endif
 
 static QMap<QProcess *, int> serversStatus;
 static uint startCounter = 0;  // start-counter of treefrog servers
 
 
-ServerManager::ServerManager(int max, int min, int spare, QObject *parent)
-    : QObject(parent), listeningSocket(0), maxServers(max), minServers(min),
-      spareServers(spare), managerState(NotRunning)
+ServerManager::ServerManager(int max, int min, int spare, QObject *parent) :
+    QObject(parent), listeningSocket(0), maxServers(max), minServers(min),
+    spareServers(spare), managerState(NotRunning)
 {
     spareServers = qMax(spareServers, 0);
     minServers = qMax(minServers, 1);
@@ -50,6 +50,12 @@ ServerManager::~ServerManager()
 }
 
 
+QString ServerManager::tfserverProgramPath()
+{
+    return QLatin1String(TFSERVER_CMD);
+}
+
+
 bool ServerManager::start(const QHostAddress &address, quint16 port)
 {
     if (isRunning())
@@ -64,7 +70,7 @@ bool ServerManager::start(const QHostAddress &address, quint16 port)
     int sd = TApplicationServerBase::nativeListen(address, port, TApplicationServerBase::NonCloseOnExec);
     if (sd <= 0) {
         tSystemError("Failed to create listening socket");
-        fprintf(stderr, "Failed to create listening socket\n");
+        std::fprintf(stderr, "Failed to create listening socket\n");
         return false;
     }
     listeningSocket = sd;
@@ -92,7 +98,7 @@ bool ServerManager::start(const QString &fileDomain)
     int sd = TApplicationServerBase::nativeListen(fileDomain, TApplicationServerBase::NonCloseOnExec);
     if (sd <= 0) {
         tSystemError("listening socket create failed  [%s:%d]", __FILE__, __LINE__);
-        fprintf(stderr, "Failed to create listening socket of UNIX domain\n");
+        std::fprintf(stderr, "Failed to create listening socket of UNIX domain\n");
         return false;
     }
 
@@ -119,7 +125,7 @@ void ServerManager::stop()
     if (serverCount() > 0) {
         tSystemInfo("TreeFrog application servers shutting down");
 
-        for (QMapIterator<QProcess *, int> i(serversStatus); i.hasNext(); ) {
+        for (QMapIterator<QProcess *, int> i(serversStatus); i.hasNext();) {
             QProcess *tfserver = i.next().key();
             disconnect(tfserver, SIGNAL(finished(int, QProcess::ExitStatus)), 0, 0);
             disconnect(tfserver, SIGNAL(readyReadStandardError()), 0, 0);
@@ -127,7 +133,7 @@ void ServerManager::stop()
             tfserver->terminate();
         }
 
-        for (QMapIterator<QProcess *, int> i(serversStatus); i.hasNext(); ) {
+        for (QMapIterator<QProcess *, int> i(serversStatus); i.hasNext();) {
             QProcess *tfserver = i.next().key();
             tfserver->waitForFinished(-1);
             delete tfserver;
@@ -169,6 +175,33 @@ void ServerManager::ajustServers()
 }
 
 
+void ServerManager::setupEnvironment(QProcess *process)
+{
+#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
+    // Sets LD_LIBRARY_PATH environment variable
+    QString ldpath = ".";  // means the lib dir
+    QString sysldpath = QProcess::systemEnvironment().filter("LD_LIBRARY_PATH=", Qt::CaseSensitive).value(0).mid(16);
+    if (!sysldpath.isEmpty()) {
+        ldpath += ":";
+        ldpath += sysldpath;
+    }
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LD_LIBRARY_PATH", ldpath);
+    tSystemDebug("export %s=%s", "LD_LIBRARY_PATH", qPrintable(ldpath));
+
+    QString preload = Tf::appSettings()->value(Tf::LDPreload).toString();
+    if (!preload.isEmpty()) {
+        env.insert("LD_PRELOAD", preload);
+        tSystemDebug("export %s=%s", "LD_PRELOAD", qPrintable(preload));
+    }
+    process->setProcessEnvironment(env);
+#else
+    Q_UNUSED(process);
+#endif
+}
+
+
 void ServerManager::startServer(int id) const
 {
     QStringList args = QCoreApplication::arguments();
@@ -197,31 +230,11 @@ void ServerManager::startServer(int id) const
     connect(tfserver, SIGNAL(started()), this, SLOT(updateServerStatus()));
     connect(tfserver, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorDetect(QProcess::ProcessError)));
     connect(tfserver, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverFinish(int, QProcess::ExitStatus)));
-    connect(tfserver, SIGNAL(readyReadStandardError()), this, SLOT(readStandardError()));    // For error notification
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_DARWIN)
-    // Sets LD_LIBRARY_PATH environment variable
-    QString ldpath = ".";  // means the lib dir
-    QString sysldpath = QProcess::systemEnvironment().filter("LD_LIBRARY_PATH=", Qt::CaseSensitive).value(0).mid(16);
-    if (!sysldpath.isEmpty()) {
-        ldpath += ":";
-        ldpath += sysldpath;
-    }
-
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("LD_LIBRARY_PATH", ldpath);
-    tSystemDebug("export %s=%s", "LD_LIBRARY_PATH", qPrintable(ldpath));
-
-    QString preload = Tf::appSettings()->value(Tf::LDPreload).toString();
-    if (!preload.isEmpty()) {
-        env.insert("LD_PRELOAD", preload);
-        tSystemDebug("export %s=%s", "LD_PRELOAD", qPrintable(preload));
-    }
-    tfserver->setProcessEnvironment(env);
-#endif
+    connect(tfserver, SIGNAL(readyReadStandardError()), this, SLOT(readStandardError()));  // For error notification
 
     // Executes treefrog server
-    tfserver->start(TFSERVER_CMD, args, QIODevice::ReadOnly);
+    setupEnvironment(tfserver);
+    tfserver->start(tfserverProgramPath(), args, QIODevice::ReadOnly);
     tfserver->closeReadChannel(QProcess::StandardOutput);
     tfserver->closeWriteChannel();
     tSystemDebug("tfserver started");
@@ -242,7 +255,7 @@ void ServerManager::errorDetect(QProcess::ProcessError error)
 {
     QProcess *server = qobject_cast<QProcess *>(sender());
     if (server) {
-        tSystemError("tfserver error detected(%d). [%s]", error, TFSERVER_CMD);
+        tSystemError("tfserver error detected(%d). [%s]", error, qPrintable(tfserverProgramPath()));
         //server->close();  // long blocking..
         server->kill();
     }
@@ -278,8 +291,8 @@ void ServerManager::readStandardError() const
     if (server) {
         QByteArray buf = server->readAllStandardError();
         tSystemWarn("treefrog stderr: %s", buf.constData());
-        fprintf(stderr, "treefrog stderr: %s", buf.constData());
+        std::fprintf(stderr, "treefrog stderr: %s", buf.constData());
     }
 }
 
-} // namespace TreeFrog
+}  // namespace TreeFrog

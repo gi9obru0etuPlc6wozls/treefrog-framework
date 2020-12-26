@@ -1,21 +1,18 @@
-#ifndef TACTIONVIEW_H
-#define TACTIONVIEW_H
-
+#pragma once
 #include <QObject>
 #include <QTextStream>
 #include <QVariant>
-#include <TGlobal>
 #include <TActionHelper>
-#include <TViewHelper>
+#include <TGlobal>
 #include <THttpRequest>
-#include <TPrototypeAjaxHelper>
 #include <THttpUtility>
+#include <TPrototypeAjaxHelper>
+#include <TViewHelper>
 
 class TActionController;
 
 
-class T_CORE_EXPORT TActionView : public QObject, public TActionHelper, public TViewHelper, public TPrototypeAjaxHelper
-{
+class T_CORE_EXPORT TActionView : public QObject, public TActionHelper, public TViewHelper, public TPrototypeAjaxHelper {
 public:
     TActionView();
     virtual ~TActionView() { }
@@ -246,4 +243,3 @@ inline void TActionView::setController(TActionController *controller)
     actionController = controller;
 }
 
-#endif // TACTIONVIEW_H

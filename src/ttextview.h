@@ -1,11 +1,8 @@
-#ifndef TTEXTVIEW_H
-#define TTEXTVIEW_H
-
+#pragma once
 #include <TActionView>
 
 
-class T_CORE_EXPORT TTextView : public TActionView
-{
+class T_CORE_EXPORT TTextView : public TActionView {
     Q_OBJECT
 public:
     TTextView(const QString &text = QString());
@@ -22,9 +19,10 @@ private:
 };
 
 
-inline TTextView::TTextView(const QString &text)
-    : TActionView(), viewText(text)
-{ }
+inline TTextView::TTextView(const QString &text) :
+    TActionView(), viewText(text)
+{
+}
 
 inline void TTextView::setText(const QString &text)
 {
@@ -36,4 +34,3 @@ inline QString TTextView::toString()
     return viewText;
 }
 
-#endif // TTEXTVIEW_H

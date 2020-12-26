@@ -1,14 +1,11 @@
-#ifndef PROCESSINFO_H
-#define PROCESSINFO_H
-
+#pragma once
 #include <QList>
 #include <QString>
 
 namespace TreeFrog {
 
 
-class ProcessInfo
-{
+class ProcessInfo {
 public:
     ProcessInfo(qint64 pid);
 
@@ -18,8 +15,8 @@ public:
     bool exists() const;
 
     void terminate();  // SIGTERM
-    void kill();       // SIGKILL
-    void restart();    // SIGHUP
+    void kill();  // SIGKILL
+    void restart();  // SIGHUP
     bool waitForTerminated(int msecs = 10000);
     QList<qint64> childProcessIds() const;
 
@@ -33,4 +30,3 @@ private:
 };
 
 }
-#endif // PROCESSINFO_H

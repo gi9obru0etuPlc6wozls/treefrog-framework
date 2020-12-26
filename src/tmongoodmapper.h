@@ -1,11 +1,9 @@
-#ifndef TMONGOODMAPPER_H
-#define TMONGOODMAPPER_H
-
+#pragma once
 #include <QVariant>
-#include <TMongoQuery>
-#include <TMongoObject>
-#include <TCriteriaMongoConverter>
 #include <TCriteria>
+#include <TCriteriaMongoConverter>
+#include <TMongoObject>
+#include <TMongoQuery>
 
 /*!
   \class TMongoODMapper
@@ -16,8 +14,7 @@
 
 
 template <class T>
-class TMongoODMapper : protected TMongoQuery
-{
+class TMongoODMapper : protected TMongoQuery {
 public:
     TMongoODMapper();
     virtual ~TMongoODMapper();
@@ -35,17 +32,17 @@ public:
 
     T findOne(const TCriteria &cri = TCriteria());
     T findFirst(const TCriteria &cri = TCriteria()) { return findOne(cri); }
-    T findFirstBy(int column, QVariant value);
+    T findFirstBy(int column, const QVariant &value);
     T findByObjectId(const QString &id);
     bool find(const TCriteria &cri = TCriteria());
-    bool findBy(int column, QVariant value);
+    bool findBy(int column, const QVariant &value);
     bool findIn(int column, const QVariantList &values);
     bool next();
     T value() const;
 
     int findCount(const TCriteria &cri = TCriteria());
-    int findCountBy(int column, QVariant value);
-    int updateAll(const TCriteria &cri, int column, QVariant value);
+    int findCountBy(int column, const QVariant &value);
+    int updateAll(const TCriteria &cri, int column, const QVariant &value);
     int updateAll(const TCriteria &cri, const QMap<int, QVariant> &values);
     int removeAll(const TCriteria &cri = TCriteria());
 
@@ -62,16 +59,18 @@ private:
   Constructor.
 */
 template <class T>
-inline TMongoODMapper<T>::TMongoODMapper()
-    : TMongoQuery(T().collectionName()), sortColumn(), sortOrder(Tf::AscendingOrder)
-{ }
+inline TMongoODMapper<T>::TMongoODMapper() :
+    TMongoQuery(T().collectionName()), sortColumn(), sortOrder(Tf::AscendingOrder)
+{
+}
 
 /*!
   Destructor.
 */
 template <class T>
 inline TMongoODMapper<T>::~TMongoODMapper()
-{ }
+{
+}
 
 template <class T>
 inline void TMongoODMapper<T>::setLimit(int limit)
@@ -107,7 +106,7 @@ inline void TMongoODMapper<T>::setSortOrder(const QString &column, Tf::SortOrder
             sortOrder = order;
         } else {
             tWarn("Unable to set sort order : '%s' field not found in '%s' collection",
-                  qPrintable(column), qPrintable(obj.collectionName()));
+                qPrintable(column), qPrintable(obj.collectionName()));
         }
     }
 }
@@ -158,7 +157,7 @@ inline T TMongoODMapper<T>::findOne(const TCriteria &criteria)
 
 
 template <class T>
-inline T TMongoODMapper<T>::findFirstBy(int column, QVariant value)
+inline T TMongoODMapper<T>::findFirstBy(int column, const QVariant &value)
 {
     T t;
     TCriteria cri(column, value);
@@ -195,7 +194,7 @@ inline bool TMongoODMapper<T>::find(const TCriteria &criteria)
 
 
 template <class T>
-inline bool TMongoODMapper<T>::findBy(int column, QVariant value)
+inline bool TMongoODMapper<T>::findBy(int column, const QVariant &value)
 {
     return find(TCriteria(column, value));
 }
@@ -235,7 +234,7 @@ inline int TMongoODMapper<T>::findCount(const TCriteria &criteria)
 
 
 template <class T>
-inline int TMongoODMapper<T>::findCountBy(int column, QVariant value)
+inline int TMongoODMapper<T>::findCountBy(int column, const QVariant &value)
 {
     return findCount(TCriteria(column, value));
 }
@@ -272,7 +271,7 @@ inline int TMongoODMapper<T>::findCountBy(int column, QVariant value)
 
 
 template <class T>
-inline int TMongoODMapper<T>::updateAll(const TCriteria &cri, int column, QVariant value)
+inline int TMongoODMapper<T>::updateAll(const TCriteria &cri, int column, const QVariant &value)
 {
     QString s = TCriteriaMongoConverter<T>::propertyName(column);
     if (s.isEmpty())
@@ -306,4 +305,3 @@ inline int TMongoODMapper<T>::removeAll(const TCriteria &criteria)
     return TMongoQuery::remove(TCriteriaMongoConverter<T>(criteria).toVariantMap());
 }
 
-#endif // TMONGOODMAPPER_H

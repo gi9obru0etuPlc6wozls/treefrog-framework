@@ -5,44 +5,45 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <QFileInfo>
-#include <QDateTime>
-#include <QTextStream>
 #include "erbconverter.h"
 #include "erbparser.h"
 #include "viewconverter.h"
+#include <QDateTime>
+#include <QFileInfo>
+#include <QTextStream>
 
-#define VIEW_SOURCE_TEMPLATE                                    \
-    "#include <QtCore>\n"                                       \
-    "#include <TreeFrogView>\n"                                 \
-    "%4"                                                        \
-    "\n"                                                        \
-    "class T_VIEW_EXPORT %1 : public TActionView\n"             \
-    "{\n"                                                       \
-    "  Q_OBJECT\n"                                              \
-    "public:\n"                                                 \
-    "  %1() : TActionView() { }\n"                              \
-    "  QString toString();\n"                                   \
-    "};\n"                                                      \
-    "\n"                                                        \
-    "QString %1::toString()\n"                                  \
-    "{\n"                                                       \
-    "  responsebody.reserve(%3);\n"                             \
-    "%2\n"                                                      \
-    "  return responsebody;\n"                                  \
-    "}\n"                                                       \
-    "\n"                                                        \
-    "T_DEFINE_VIEW(%1)\n"                                       \
-    "\n"                                                        \
+#define VIEW_SOURCE_TEMPLATE                        \
+    "#include <QtCore>\n"                           \
+    "#include <TreeFrogView>\n"                     \
+    "%4"                                            \
+    "\n"                                            \
+    "class T_VIEW_EXPORT %1 : public TActionView\n" \
+    "{\n"                                           \
+    "  Q_OBJECT\n"                                  \
+    "public:\n"                                     \
+    "  %1() : TActionView() { }\n"                  \
+    "  QString toString();\n"                       \
+    "};\n"                                          \
+    "\n"                                            \
+    "QString %1::toString()\n"                      \
+    "{\n"                                           \
+    "  responsebody.reserve(%3);\n"                 \
+    "%2\n"                                          \
+    "  return responsebody;\n"                      \
+    "}\n"                                           \
+    "\n"                                            \
+    "T_DEFINE_VIEW(%1)\n"                           \
+    "\n"                                            \
     "#include \"%1.moc\"\n"
 
 
 const QRegExp RxPartialTag("<%#partial[ \t]+\"([^\"]+)\"[ \t]*%>");
 
 
-ErbConverter::ErbConverter(const QDir &output, const QDir &helpers, const QDir &partial)
-    : outputDirectory(output), helpersDirectory(helpers), partialDirectory(partial)
-{ }
+ErbConverter::ErbConverter(const QDir &output, const QDir &helpers, const QDir &partial) :
+    outputDirectory(output), helpersDirectory(helpers), partialDirectory(partial)
+{
+}
 
 
 bool ErbConverter::convert(const QString &erbPath, int trimMode) const
@@ -76,10 +77,10 @@ bool ErbConverter::convert(const QString &erbPath, int trimMode) const
         if ((latestPartialTs.isValid() && latestPartialTs >= outFileInfo.lastModified())
             || erbFileInfo.lastModified() >= outFileInfo.lastModified()) {
             if (outFile.remove()) {
-                printf("  removed  %s\n", qPrintable(outFile.fileName()));
+                std::printf("  removed  %s\n", qPrintable(outFile.fileName()));
             }
         } else {
-            //printf("  done    %s\n", qPrintable(outFile.fileName()));
+            //std::printf("  done    %s\n", qPrintable(outFile.fileName()));
             return true;
         }
     }
@@ -95,7 +96,7 @@ bool ErbConverter::convert(const QString &erbPath, int trimMode) const
     QTextStream ts(&outFile);
     ts << QString(VIEW_SOURCE_TEMPLATE).arg(className, code, QString::number(code.size()), generateIncludeCode(parser));
     if (ts.status() == QTextStream::Ok) {
-        printf("  created  %s  (trim:%d)\n", qPrintable(outFile.fileName()), trimMode);
+        std::printf("  created  %s  (trim:%d)\n", qPrintable(outFile.fileName()), trimMode);
     }
     return true;
 }
@@ -115,7 +116,7 @@ bool ErbConverter::convert(const QString &className, const QString &erb, int tri
     QTextStream ts(&outFile);
     ts << QString(VIEW_SOURCE_TEMPLATE).arg(className, code, QString::number(code.size()), generateIncludeCode(parser));
     if (ts.status() == QTextStream::Ok) {
-        printf("  created  %s  (trim:%d)\n", qPrintable(outFile.fileName()), trimMode);
+        std::printf("  created  %s  (trim:%d)\n", qPrintable(outFile.fileName()), trimMode);
     }
     return true;
 }
@@ -147,7 +148,10 @@ QString ErbConverter::generateIncludeCode(const ErbParser &parser) const
 {
     QString code = parser.includeCode();
     QStringList filter;
-    filter << "*.h" << "*.hh" << "*.hpp" << "*.hxx";
+    filter << "*.h"
+           << "*.hh"
+           << "*.hpp"
+           << "*.hxx";
     foreach (QString f, helpersDirectory.entryList(filter, QDir::Files)) {
         code += "#include \"";
         code += f;

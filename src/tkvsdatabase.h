@@ -1,6 +1,4 @@
-#ifndef TKVSDATABASE_H
-#define TKVSDATABASE_H
-
+#pragma once
 #include <QString>
 #include <TGlobal>
 
@@ -8,12 +6,11 @@ class TKvsDriver;
 class TKvsDatabaseData;
 
 
-class T_CORE_EXPORT TKvsDatabase
-{
+class T_CORE_EXPORT TKvsDatabase {
 public:
-    TKvsDatabase() {}
+    TKvsDatabase() { }
     TKvsDatabase(const TKvsDatabase &other);
-    ~TKvsDatabase() {}
+    ~TKvsDatabase() { }
     TKvsDatabase &operator=(const TKvsDatabase &other);
 
     QString driverName() const;
@@ -56,4 +53,3 @@ private:
     TKvsDatabase(const TKvsDatabaseData &data);
 };
 
-#endif // TKVSDATABASE_H

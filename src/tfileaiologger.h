@@ -1,14 +1,11 @@
-#ifndef TFILEAIOLOGGER_H
-#define TFILEAIOLOGGER_H
-
+#pragma once
 #include <QString>
 #include <TLogger>
 
 class TFileAioWriter;
 
 
-class T_CORE_EXPORT TFileAioLogger : public TLogger
-{
+class T_CORE_EXPORT TFileAioLogger : public TLogger {
 public:
     TFileAioLogger();
     ~TFileAioLogger();
@@ -30,4 +27,3 @@ private:
     T_DISABLE_MOVE(TFileAioLogger)
 };
 
-#endif // TFILEAIOLOGGER_H

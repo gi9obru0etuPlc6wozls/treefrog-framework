@@ -1,14 +1,11 @@
-#ifndef TSESSIONSTOREFACTORY_H
-#define TSESSIONSTOREFACTORY_H
-
+#pragma once
 #include <QStringList>
 #include <TGlobal>
 
 class TSessionStore;
 
 
-class T_CORE_EXPORT TSessionStoreFactory
-{
+class T_CORE_EXPORT TSessionStoreFactory {
 public:
     static QStringList keys();
     static TSessionStore *create(const QString &key);
@@ -24,4 +21,3 @@ private:
     };
 };
 
-#endif // TSESSIONSTOREFACTORY_H

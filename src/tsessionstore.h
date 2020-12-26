@@ -1,14 +1,11 @@
-#ifndef TSESSIONSTORE_H
-#define TSESSIONSTORE_H
-
-#include <QString>
+#pragma once
 #include <QByteArray>
 #include <QDateTime>
+#include <QString>
 #include <TSession>
 
 
-class T_CORE_EXPORT TSessionStore
-{
+class T_CORE_EXPORT TSessionStore {
 public:
     TSessionStore() { }
     virtual ~TSessionStore() { }
@@ -20,4 +17,3 @@ public:
     static qint64 lifeTimeSecs();
 };
 
-#endif // TSESSIONSTORE_H

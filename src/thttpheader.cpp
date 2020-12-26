@@ -16,8 +16,10 @@ using namespace Tf;
 /*!
   Constructor.
 */
-THttpHeader::THttpHeader() : TInternetMessageHeader()
-{ }
+THttpHeader::THttpHeader() :
+    TInternetMessageHeader()
+{
+}
 
 /*!
   Copy constructor.
@@ -26,12 +28,14 @@ THttpHeader::THttpHeader(const THttpHeader &other) :
     TInternetMessageHeader(*static_cast<const TInternetMessageHeader *>(&other)),
     _majorVersion(other._majorVersion),
     _minorVersion(other._minorVersion)
-{ }
+{
+}
 
 /*!
   Constructs an HTTP header by parsing \a str.
 */
-THttpHeader::THttpHeader(const QByteArray &str) : TInternetMessageHeader()
+THttpHeader::THttpHeader(const QByteArray &str) :
+    TInternetMessageHeader()
 {
     parse(str);
 }
@@ -83,7 +87,8 @@ QByteArray THttpHeader::toByteArray() const
 */
 THttpRequestHeader::THttpRequestHeader() :
     THttpHeader()
-{ }
+{
+}
 
 /*!
   Copy constructor.
@@ -92,7 +97,8 @@ THttpRequestHeader::THttpRequestHeader(const THttpRequestHeader &other) :
     THttpHeader(*static_cast<const THttpHeader *>(&other)),
     _reqMethod(other._reqMethod),
     _reqUri(other._reqUri)
-{ }
+{
+}
 
 /*!
   Constructs an HTTP request header by parsing \a str.
@@ -155,8 +161,9 @@ QByteArray THttpRequestHeader::cookie(const QString &name) const
 QList<TCookie> THttpRequestHeader::cookies() const
 {
     QList<TCookie> result;
-    const QByteArrayList cookieStrings = rawHeader("Cookie").split(';');
+    const QByteArrayList cookieStrings = rawHeader(QByteArrayLiteral("Cookie")).split(';');
 
+    result.reserve(cookieStrings.size());
     for (auto &ck : cookieStrings) {
         QByteArray ba = ck.trimmed();
         if (!ba.isEmpty()) {
@@ -172,7 +179,8 @@ QList<TCookie> THttpRequestHeader::cookies() const
 QByteArray THttpRequestHeader::toByteArray() const
 {
     QByteArray ba;
-    ba.reserve(256);
+    QByteArray hdr = THttpHeader::toByteArray();
+    ba.reserve(256 + hdr.size());
     ba += _reqMethod;
     ba += ' ';
     ba += _reqUri;
@@ -181,7 +189,7 @@ QByteArray THttpRequestHeader::toByteArray() const
     ba += '.';
     ba += QByteArray::number(minorVersion());
     ba += CRLF;
-    ba += THttpHeader::toByteArray();
+    ba += hdr;
     return ba;
 }
 
@@ -219,7 +227,8 @@ THttpRequestHeader &THttpRequestHeader::operator=(const THttpRequestHeader &othe
 */
 THttpResponseHeader::THttpResponseHeader() :
     THttpHeader()
-{ }
+{
+}
 
 /*!
   Copy constructor.
@@ -228,7 +237,8 @@ THttpResponseHeader::THttpResponseHeader(const THttpResponseHeader &other) :
     THttpHeader(*static_cast<const THttpHeader *>(&other)),
     _statusCode(other._statusCode),
     _reasonPhrase(other._reasonPhrase)
-{ }
+{
+}
 
 /*!
   Constructs an HTTP response header by parsing \a str.
@@ -250,8 +260,7 @@ THttpResponseHeader::THttpResponseHeader(const QByteArray &str) :
                 _statusCode = line.mid(9, 3).toInt();
             }
 
-            if (line.length() > 13 &&
-                (line[12] == ' ' || line[12] == '\t')) {
+            if (line.length() > 13 && (line[12] == ' ' || line[12] == '\t')) {
                 _reasonPhrase = line.mid(13).trimmed();
             }
         }
@@ -276,7 +285,8 @@ void THttpResponseHeader::setStatusLine(int code, const QByteArray &text, int ma
 QByteArray THttpResponseHeader::toByteArray() const
 {
     QByteArray ba;
-    ba.reserve(256);
+    QByteArray hdr = THttpHeader::toByteArray();
+    ba.reserve(256 + hdr.size());
     ba += "HTTP/";
     ba += QByteArray::number(majorVersion());
     ba += '.';
@@ -286,7 +296,7 @@ QByteArray THttpResponseHeader::toByteArray() const
     ba += ' ';
     ba += _reasonPhrase;
     ba += CRLF;
-    ba += THttpHeader::toByteArray();
+    ba += hdr;
     return ba;
 }
 

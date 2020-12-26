@@ -1,17 +1,14 @@
-#ifndef THAZARDOBJECT_H
-#define THAZARDOBJECT_H
-
-#include <TGlobal>
+#pragma once
 #include <TAtomic>
+#include <TGlobal>
 
 
-class T_CORE_EXPORT THazardObject
-{
+class T_CORE_EXPORT THazardObject {
 public:
     THazardObject();
     THazardObject(const THazardObject &);
-    THazardObject(THazardObject &&) {}
-    virtual ~THazardObject() {}
+    THazardObject(THazardObject &&) { }
+    virtual ~THazardObject() { }
 
     void deleteLater();
     THazardObject &operator=(const THazardObject &) { return *this; }
@@ -25,4 +22,3 @@ private:
     friend class THazardRemoverThread;
 };
 
-#endif // THAZARDOBJECT_H

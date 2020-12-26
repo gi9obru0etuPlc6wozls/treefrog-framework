@@ -1,17 +1,14 @@
-#ifndef THAZARDPTRMANAGER_H
-#define THAZARDPTRMANAGER_H
-
-#include <TGlobal>
+#pragma once
 #include "tatomic.h"
 #include "tatomicptr.h"
+#include <TGlobal>
 
 class THazardPtrRecord;
 class THazardObject;
 class THazardRemoverThread;
 
 
-class T_CORE_EXPORT THazardPtrManager
-{
+class T_CORE_EXPORT THazardPtrManager {
 public:
     ~THazardPtrManager();
 
@@ -42,4 +39,3 @@ private:
     T_DISABLE_MOVE(THazardPtrManager)
 };
 
-#endif // THAZARDPTRMANAGER_H

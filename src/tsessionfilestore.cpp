@@ -6,13 +6,13 @@
  */
 
 #include "tsessionfilestore.h"
-#include "tsystemglobal.h"
 #include "tfcore.h"
-#include <TWebApplication>
-#include <QFile>
-#include <QDir>
+#include "tsystemglobal.h"
 #include <QDataStream>
+#include <QDir>
+#include <QFile>
 #include <QReadWriteLock>
+#include <TWebApplication>
 
 constexpr auto SESSION_DIR_NAME = "session";
 
@@ -46,7 +46,7 @@ bool TSessionFileStore::store(TSession &session)
         dsbuf << *static_cast<const QVariantMap *>(&session);
         buffer = Tf::lz4Compress(buffer);  // compress
 
-        file.resize(0); // truncate
+        file.resize(0);  // truncate
         QDataStream ds(&file);
         ds << buffer;
         file.close();
@@ -130,6 +130,6 @@ int TSessionFileStore::gc(const QDateTime &expire)
 
 QString TSessionFileStore::sessionDirPath()
 {
-    static const QString path = Tf::app()->tmpPath() + QLatin1String(SESSION_DIR_NAME) + QDir::separator();
+    static const QString path = Tf::app()->tmpPath() + QLatin1String(SESSION_DIR_NAME) + "/";
     return path;
 }

@@ -5,21 +5,21 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <QtCore>
-#include <QtSql>
 #include "tableschema.h"
 #include "global.h"
+#include <QtCore>
+#include <QtSql>
 
 namespace {
-    QSettings *dbSettings = nullptr;
+QSettings *dbSettings = nullptr;
 }
 
 
-TableSchema::TableSchema(const QString &table, const QString &env)
-    : tablename(table)
+TableSchema::TableSchema(const QString &table, const QString &env) :
+    tablename(table)
 {
     if (!dbSettings) {
-        QString path = QLatin1String("config") + QDir::separator() + "database.ini";
+        QString path = QLatin1String("config/database.ini");
         if (!QFile::exists(path)) {
             qCritical("not found, %s", qPrintable(path));
         }
@@ -185,7 +185,7 @@ bool TableSchema::openDatabase(const QString &env) const
     if (driverType.isEmpty()) {
         qWarning("Parameter 'DriverType' is empty");
     }
-    printf("DriverType:   %s\n", qPrintable(driverType));
+    std::printf("DriverType:   %s\n", qPrintable(driverType));
 
     QSqlDatabase db = QSqlDatabase::addDatabase(driverType);
     if (!db.isValid()) {
@@ -194,13 +194,13 @@ bool TableSchema::openDatabase(const QString &env) const
     }
 
     QString databaseName = dbSettings->value(env + "/DatabaseName").toString().trimmed();
-    printf("DatabaseName: %s\n", qPrintable(databaseName));
+    std::printf("DatabaseName: %s\n", qPrintable(databaseName));
     if (!databaseName.isEmpty()) {
         db.setDatabaseName(databaseName);
     }
 
     QString hostName = dbSettings->value(env + "/HostName").toString().trimmed();
-    printf("HostName:     %s\n", qPrintable(hostName));
+    std::printf("HostName:     %s\n", qPrintable(hostName));
     if (!hostName.isEmpty()) {
         db.setHostName(hostName);
     }
@@ -230,7 +230,7 @@ bool TableSchema::openDatabase(const QString &env) const
         return false;
     }
 
-    printf("Database opened successfully\n");
+    std::printf("Database opened successfully\n");
     return true;
 }
 
@@ -253,10 +253,10 @@ QStringList TableSchema::tables(const QString &env)
     TableSchema dummy("dummy", env);  // to open database
 
     if (QSqlDatabase::database().isOpen()) {
-        for (QStringListIterator i(QSqlDatabase::database().tables(QSql::Tables)); i.hasNext(); ) {
+        for (QStringListIterator i(QSqlDatabase::database().tables(QSql::Tables)); i.hasNext();) {
             TableSchema t(i.next());
             if (t.exists()) {
-                set << t.tableName(); // If value already exists, the set is left unchanged
+                set << t.tableName();  // If value already exists, the set is left unchanged
             }
         }
     }

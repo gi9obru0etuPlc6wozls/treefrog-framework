@@ -1,18 +1,15 @@
-#ifndef TTHREADAPPLICATIONSERVER_H
-#define TTHREADAPPLICATIONSERVER_H
-
-#include <TGlobal>
-#include <TApplicationServerBase>
-#include <TActionThread>
+#pragma once
 #include "tstack.h"
-#include <QTcpServer>
 #include <QBasicTimer>
+#include <QTcpServer>
 #include <QtGlobal>
+#include <TActionThread>
+#include <TApplicationServerBase>
+#include <TGlobal>
 
 
 #if defined(Q_OS_WIN) || defined(Q_OS_DARWIN)
-class T_CORE_EXPORT TThreadApplicationServer : public QTcpServer, public TApplicationServerBase
-{
+class T_CORE_EXPORT TThreadApplicationServer : public QTcpServer, public TApplicationServerBase {
     Q_OBJECT
 public:
     TThreadApplicationServer(int listeningSocket, QObject *parent = 0);
@@ -38,8 +35,7 @@ private:
     T_DISABLE_MOVE(TThreadApplicationServer)
 };
 #else
-class T_CORE_EXPORT TThreadApplicationServer : public QThread, public TApplicationServerBase
-{
+class T_CORE_EXPORT TThreadApplicationServer : public QThread, public TApplicationServerBase {
     Q_OBJECT
 public:
     TThreadApplicationServer(int listeningSocket, QObject *parent = 0);
@@ -69,8 +65,7 @@ private:
 #endif
 
 
-class TStaticInitializeThread : public TActionThread
-{
+class TStaticInitializeThread : public TActionThread {
 public:
     static void exec()
     {
@@ -79,11 +74,11 @@ public:
         QThread::yieldCurrentThread();  // needed to avoid deadlock on win
         initializer->wait();
         delete initializer;
-
     }
 
 protected:
-    TStaticInitializeThread() : TActionThread(0) { }
+    TStaticInitializeThread() :
+        TActionThread(0) { }
 
     void run() override
     {
@@ -93,8 +88,7 @@ protected:
 };
 
 
-class TStaticReleaseThread : public TActionThread
-{
+class TStaticReleaseThread : public TActionThread {
 public:
     static void exec()
     {
@@ -106,7 +100,8 @@ public:
     }
 
 protected:
-    TStaticReleaseThread() : TActionThread(0) { }
+    TStaticReleaseThread() :
+        TActionThread(0) { }
 
     void run() override
     {
@@ -115,4 +110,3 @@ protected:
     }
 };
 
-#endif // TTHREADAPPLICATIONSERVER_H

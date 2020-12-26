@@ -1,13 +1,10 @@
-#ifndef TPROCESSINFO_H
-#define TPROCESSINFO_H
-
+#pragma once
 #include <QList>
 #include <QString>
 #include <TGlobal>
 
 
-class T_CORE_EXPORT TProcessInfo
-{
+class T_CORE_EXPORT TProcessInfo {
 public:
     TProcessInfo(qint64 pid);
 
@@ -17,8 +14,8 @@ public:
     bool exists() const;
 
     void terminate();  // SIGTERM
-    void kill();       // SIGKILL
-    void restart();    // SIGHUP
+    void kill();  // SIGKILL
+    void restart();  // SIGHUP
     bool waitForTerminated(int msecs = 10000);
     QList<qint64> childProcessIds() const;
 
@@ -28,7 +25,6 @@ public:
     static QList<qint64> allConcurrentPids();
 
 private:
-    qint64 processId;
+    qint64 processId {0};
 };
 
-#endif // TPROCESSINFO_H

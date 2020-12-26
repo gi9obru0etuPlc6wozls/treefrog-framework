@@ -5,28 +5,28 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TWebApplication>
-#include <TSystemGlobal>
-#include <TAppSettings>
-#include "tdatabasecontextmainthread.h"
 #include "tcachefactory.h"
-#include <QDir>
-#include <QTextCodec>
+#include "tdatabasecontextmainthread.h"
 #include <QDateTime>
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTextCodec>
+#include <TAppSettings>
+#include <TSystemGlobal>
+#include <TWebApplication>
 #include <cstdlib>
 #include <thread>  // for hardware_concurrency()
 
-constexpr auto DEFAULT_INTERNET_MEDIA_TYPE  = "text/plain";
+constexpr auto DEFAULT_INTERNET_MEDIA_TYPE = "text/plain";
 constexpr auto DEFAULT_DATABASE_ENVIRONMENT = "product";
 
 namespace {
-    QTextCodec *searchCodec(const char *name)
-    {
-        QTextCodec *c = QTextCodec::codecForName(name);
-        return (c) ? c : QTextCodec::codecForLocale();
-    }
+QTextCodec *searchCodec(const char *name)
+{
+    QTextCodec *c = QTextCodec::codecForName(name);
+    return (c) ? c : QTextCodec::codecForLocale();
+}
 }
 
 /*!
@@ -38,11 +38,11 @@ namespace {
 /*!
   Constructor.
 */
-TWebApplication::TWebApplication(int &argc, char **argv)
+TWebApplication::TWebApplication(int &argc, char **argv) :
 #ifdef TF_USE_GUI_MODULE
-    : QApplication(argc, argv),
+    QApplication(argc, argv),
 #else
-    : QCoreApplication(argc, argv),
+    QCoreApplication(argc, argv),
 #endif
     _dbEnvironment(DEFAULT_DATABASE_ENVIRONMENT)
 {
@@ -54,7 +54,7 @@ TWebApplication::TWebApplication(int &argc, char **argv)
     _webRootAbsolutePath = ".";
     QStringList args = arguments();
     args.removeFirst();
-    for (QStringListIterator i(args); i.hasNext(); ) {
+    for (QStringListIterator i(args); i.hasNext();) {
         const QString &arg = i.next();
         if (arg.startsWith('-')) {
             if (arg == "-e" && i.hasNext()) {
@@ -66,8 +66,8 @@ TWebApplication::TWebApplication(int &argc, char **argv)
         } else {
             if (QDir(arg).exists()) {
                 _webRootAbsolutePath = arg;
-                if (!_webRootAbsolutePath.endsWith(QDir::separator())) {
-                    _webRootAbsolutePath += QDir::separator();
+                if (!_webRootAbsolutePath.endsWith("/")) {
+                    _webRootAbsolutePath += "/";
                 }
             }
         }
@@ -75,7 +75,7 @@ TWebApplication::TWebApplication(int &argc, char **argv)
 
     QDir webRoot(_webRootAbsolutePath);
     if (webRoot.exists()) {
-        _webRootAbsolutePath = webRoot.absolutePath() + QDir::separator();
+        _webRootAbsolutePath = webRoot.absolutePath() + "/";
     }
 
     // Sets application name
@@ -93,7 +93,7 @@ TWebApplication::TWebApplication(int &argc, char **argv)
     if (QFileInfo(configPath() + "internet_media_types.ini").exists()) {
         mediaTypes = new QSettings(configPath() + "internet_media_types.ini", QSettings::IniFormat, this);
     } else {
-        mediaTypes = new QSettings(configPath() + "initializers" + QDir::separator() + "internet_media_types.ini", QSettings::IniFormat, this);
+        mediaTypes = new QSettings(configPath() + "initializers/internet_media_types.ini", QSettings::IniFormat, this);
     }
     // Gets codecs
     _codecInternal = searchCodec(Tf::appSettings()->value(Tf::InternalEncoding).toByteArray().trimmed().data());
@@ -111,11 +111,19 @@ TWebApplication::TWebApplication(int &argc, char **argv)
     delete mediaTypes;
 
     // SQL DB settings
-    QString dbsets = Tf::appSettings()->value(Tf::SqlDatabaseSettingsFiles).toString().trimmed();
-    if (dbsets.isEmpty()) {
-        dbsets = Tf::appSettings()->readValue("DatabaseSettingsFiles").toString().trimmed();
-    }
-    const QStringList files = dbsets.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    const QStringList files = []() {
+        // delimiter: comma or space
+        QStringList files;
+        QStringList dbsets = Tf::appSettings()->value(Tf::SqlDatabaseSettingsFiles).toStringList();
+        if (dbsets.isEmpty()) {
+            dbsets = Tf::appSettings()->readValue("DatabaseSettingsFiles").toStringList();
+        }
+        for (auto &s : dbsets) {
+            files << s.simplified().split(QLatin1Char(' '));
+        }
+        return files;
+    }();
+
     for (auto &f : files) {
         QSettings settings(configPath() + f, QSettings::IniFormat);
         settings.setIniCodec(_codecInternal);
@@ -148,14 +156,14 @@ TWebApplication::TWebApplication(int &argc, char **argv)
     if (cacheEnabled()) {
         auto backend = cacheBackend();
         QString path = Tf::appSettings()->value(Tf::CacheSettingsFile).toString().trimmed();
-        if (! path.isEmpty()) {
+        if (!path.isEmpty()) {
             QVariantMap settings = TCacheFactory::defaultSettings(backend);
             // Copy settings
             QSettings iniset(configPath() + path, QSettings::IniFormat);
             iniset.beginGroup(backend);
             for (auto &k : iniset.allKeys()) {
                 auto val = iniset.value(k).toString().trimmed();
-                if (! val.isEmpty()) {
+                if (!val.isEmpty()) {
                     settings.insert(k, iniset.value(k));
                 }
             }
@@ -172,7 +180,8 @@ TWebApplication::TWebApplication(int &argc, char **argv)
 
 
 TWebApplication::~TWebApplication()
-{ }
+{
+}
 
 /*!
   Enters the main event loop and waits until exit() is called. Returns the
@@ -189,7 +198,8 @@ int TWebApplication::exec()
 #endif
 
     QEventLoop eventLoop;
-    while (eventLoop.processEvents()) { }
+    while (eventLoop.processEvents()) {
+    }
     return ret;
 }
 
@@ -206,7 +216,7 @@ bool TWebApplication::webRootExists() const
 */
 QString TWebApplication::publicPath() const
 {
-    return webRootPath() + "public" + QDir::separator();
+    return webRootPath() + "public/";
 }
 
 /*!
@@ -214,7 +224,7 @@ QString TWebApplication::publicPath() const
 */
 QString TWebApplication::configPath() const
 {
-    return webRootPath() + "config" + QDir::separator();
+    return webRootPath() + "config/";
 }
 
 /*!
@@ -222,7 +232,7 @@ QString TWebApplication::configPath() const
 */
 QString TWebApplication::libPath() const
 {
-    return webRootPath()+ "lib" + QDir::separator();
+    return webRootPath() + "lib/";
 }
 
 /*!
@@ -230,7 +240,7 @@ QString TWebApplication::libPath() const
 */
 QString TWebApplication::logPath() const
 {
-    return webRootPath() + "log" + QDir::separator();
+    return webRootPath() + "log/";
 }
 
 /*!
@@ -238,7 +248,7 @@ QString TWebApplication::logPath() const
 */
 QString TWebApplication::pluginPath() const
 {
-    return webRootPath() + "plugin" + QDir::separator();
+    return webRootPath() + "plugin/";
 }
 
 /*!
@@ -246,7 +256,7 @@ QString TWebApplication::pluginPath() const
 */
 QString TWebApplication::tmpPath() const
 {
-    return webRootPath() + "tmp" + QDir::separator();
+    return webRootPath() + "tmp/";
 }
 
 /*!
@@ -501,7 +511,7 @@ const QVariantMap &TWebApplication::getConfig(const QString &configName)
 
     if (!_configMap.contains(cnf)) {
         QDir dir(configPath());
-        QStringList filters = { configName + ".*", configName };
+        QStringList filters = {configName + ".*", configName};
         const auto filist = dir.entryInfoList(filters);
 
         if (filist.isEmpty()) {

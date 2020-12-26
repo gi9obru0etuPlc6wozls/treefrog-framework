@@ -1,13 +1,10 @@
-#ifndef THTMLATTRIBUTE_H
-#define THTMLATTRIBUTE_H
-
-#include <QStringList>
+#pragma once
 #include <QPair>
+#include <QStringList>
 #include <TGlobal>
 
 
-class T_CORE_EXPORT THtmlAttribute : public QList<QPair<QString, QString>>
-{
+class T_CORE_EXPORT THtmlAttribute : public QList<QPair<QString, QString>> {
 public:
     THtmlAttribute() { }
     THtmlAttribute(const QString &key, const QString &value);
@@ -25,4 +22,3 @@ public:
 
 Q_DECLARE_METATYPE(THtmlAttribute)
 
-#endif // TVIEWHELPER_H

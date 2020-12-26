@@ -1,15 +1,12 @@
-#ifndef TINTERNETMESSAGEHEADER_H
-#define TINTERNETMESSAGEHEADER_H
-
-#include <TGlobal>
-#include <QList>
-#include <QPair>
+#pragma once
 #include <QByteArray>
 #include <QDateTime>
+#include <QList>
+#include <QPair>
+#include <TGlobal>
 
 
-class T_CORE_EXPORT TInternetMessageHeader
-{
+class T_CORE_EXPORT TInternetMessageHeader {
 public:
     TInternetMessageHeader() { }
     TInternetMessageHeader(const TInternetMessageHeader &other);
@@ -42,7 +39,7 @@ protected:
 
     using RawHeaderPair = QPair<QByteArray, QByteArray>;
     using RawHeaderPairList = QList<RawHeaderPair>;
-    RawHeaderPairList headerPairList;
+    RawHeaderPairList _headerPairList;
+    mutable qint64 _contentLength {-1};
 };
 
-#endif // TINTERNETMESSAGEHEADER_H

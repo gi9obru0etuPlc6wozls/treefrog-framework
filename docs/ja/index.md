@@ -14,14 +14,14 @@ C++/Qt で作られたサーバサイドのフレームワークであるので�
 
 TreeFrog Framework には次のような特徴があります。
 
-  1. 高パフォーマンス ： 高度に最適化されたアプリケーションサーバエンジン
+  1. 高パフォーマンス ： 高度に最適化されたC++アプリケーションサーバエンジン
   2. O/R マッピング ： 複雑で面倒なデータベースコーディングを隠蔽
   3. テンプレートシステム ： ERBライクなテンプレートエンジン
   4. 多くのDBに対応 ： MySQL, PostgreSQL, ODBC, SQLite, MongoDB, Redis, etc.
-  5. クロスプラットフォーム ： Windows, macOS, Linuxで同じソースコードが動作
-  6. WebSocket 対応 ： サーバと双方向通信が可能
-  7. ジェネレータ ： 「足場」となるソースコードや Makefile を自動で生成
-  8. 低リソース：  ラズベリーパイでも軽快に動作
+  5. WebSocket 対応 ： サーバと双方向通信が可能
+  6. ジェネレータ ： 「足場」となるソースコードや Makefile を自動で生成
+  7. 様々なレスポンスタイプに対応 ： JSON, XML, CBOR
+  8. クロスプラットフォーム ： Windows, macOS, Linuxで同じソースコードが動作
   9. オープンソースソフトウェア ： New BSD License
 
 
@@ -40,15 +40,46 @@ Webアプリの開発において、開発効率と動作速度はトレード�
 
 ## <i class="fa fa-bell" aria-hidden="true"></i> お知らせ
 
-### 2019/10/19  TreeFrog Framework バージョン1.26.0 （安定版）リリース <span style="color: red;">New!</span>
+### 2020/8/21  TreeFrog Framework バージョン1.30.0 （安定版）リリース <span style="color: red;">New!</span>
+
+  - X-Forwarded-Forヘッダの対応
+  - ActionMailer.smtp.RequireTLSパタメータをapplication.iniへ追加
+  - URLルーティング情報を表示するオプションをtreefrogコマンドへ追加
+  - ORM関数のI/F更新
+  - パフォマンス改善
+
+ [<i class="fas fa-download"></i> ダウンロードはこちらから](/ja/download/)
+
+### 2020/5/2  TreeFrog Framework バージョン1.29.0 （安定版）リリース
+
+  - Cookieへmax-ageを指定した時の不具合修正
+  - selectタグ生成時の不具合修正
+  - クラス生成時のboolフィールドの初期化コードを変更
+  - publish()関数をTActionControllerクラスに実装
+
+### 2020/2/11  TreeFrog Framework バージョン1.28.0 （安定版）リリース
+
+  - CookieへSameSite属性を追加できるよう実装
+  - MaxAge属性を設定するよう修正
+  - 利用可能なコントローラの表示に関するバグを修正
+  - -lオプションで表示した時のポート表示の不具合を修正
+  - renderText()関数で設定されるコンテントタイプの不具合修正
+
+### 2019/12/5  TreeFrog Framework バージョン1.27.0 （安定版）リリース
+
+  - OAuth2クライアントの実装 [実験的]
+  - MongoDBバージョン3.2以降のサポート.
+  - TSqlDatabasePoolのタイマーが停止する不具合修正 #279
+  - トランザクション有効/無効の設定が反映されない不具合の修正
+  - tspawnコマンドにおけるdiff実行の不具合修正
+
+### 2019/10/19  TreeFrog Framework バージョン1.26.0 （安定版）リリース
 
   - SQLite, MongoDB, Redis向けキャッシュモジュールを追加
   - LZ4圧縮アルゴリズムをv1.9.2に更新
   - Ubuntu 19.10でのコンパイルエラー解消
   - epoll MPMをマルチスレッドからシングルスレッドアーキテクチャに変更
   - パフォーマンス改善
-
- [<i class="fas fa-download"></i> ダウンロードはこちらから](/ja/download/)
 
 ### 2019/7/20  TreeFrog Framework バージョン1.25.0 （安定版）リリース
 

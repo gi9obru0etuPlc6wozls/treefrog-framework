@@ -1,16 +1,13 @@
-#ifndef TACCESSVALIDATOR_H
-#define TACCESSVALIDATOR_H
-
-#include <TGlobal>
+#pragma once
+#include <QList>
 #include <QString>
 #include <QStringList>
-#include <QList>
+#include <TGlobal>
 
 class TAbstractUser;
 
 
-class T_CORE_EXPORT TAccessValidator
-{
+class T_CORE_EXPORT TAccessValidator {
 public:
     TAccessValidator();
     virtual ~TAccessValidator() { }
@@ -35,8 +32,7 @@ public:
 protected:
     void addRules(int type, const QString &key, const QStringList &actions, bool allow);
 
-    class AccessRule
-    {
+    class AccessRule {
     public:
         enum Type {
             Group = 0,
@@ -46,7 +42,8 @@ protected:
 
         AccessRule(int t, const QString &k, const QString &act, bool alw) :
             type(t), key(k), action(act), allow(alw)
-        { }
+        {
+        }
 
         int type {0};
         QString key;
@@ -58,4 +55,3 @@ protected:
     QList<AccessRule> accessRules;
 };
 
-#endif // TACCESSVALIDATOR_H

@@ -1,15 +1,12 @@
-#ifndef TEPOLLHTTPSOCKET_H
-#define TEPOLLHTTPSOCKET_H
-
-#include <TGlobal>
+#pragma once
 #include "tepollsocket.h"
+#include <TGlobal>
 
 class QHostAddress;
 class TActionWorker;
 
 
-class T_CORE_EXPORT TEpollHttpSocket : public TEpollSocket
-{
+class T_CORE_EXPORT TEpollHttpSocket : public TEpollSocket {
 public:
     ~TEpollHttpSocket();
 
@@ -19,7 +16,7 @@ public:
     virtual void startWorker();
     void releaseWorker();
     static TEpollHttpSocket *searchSocket(int sid);
-    static QList<TEpollHttpSocket*> allSockets();
+    static QList<TEpollHttpSocket *> allSockets();
 
 protected:
     virtual int send();
@@ -41,4 +38,3 @@ private:
     T_DISABLE_MOVE(TEpollHttpSocket)
 };
 
-#endif // TEPOLLHTTPSOCKET_H

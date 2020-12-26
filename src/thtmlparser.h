@@ -1,15 +1,12 @@
-#ifndef THTMLPARSER_H
-#define THTMLPARSER_H
-
-#include <QString>
-#include <QVector>
+#pragma once
 #include <QList>
 #include <QPair>
+#include <QString>
+#include <QVector>
 #include <TGlobal>
 
 
-class T_CORE_EXPORT THtmlElement
-{
+class T_CORE_EXPORT THtmlElement {
 public:
     THtmlElement();
     bool isEmpty() const;
@@ -32,8 +29,7 @@ public:
 };
 
 
-class T_CORE_EXPORT THtmlParser
-{
+class T_CORE_EXPORT THtmlParser {
 public:
     enum TrimMode {
         TrimOff = 0,
@@ -91,4 +87,3 @@ private:
     int pos;
 };
 
-#endif // THTMLPARSER_H

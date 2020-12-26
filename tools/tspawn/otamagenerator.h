@@ -1,14 +1,11 @@
-#ifndef OTAMAGENERATOR_H
-#define OTAMAGENERATOR_H
-
-#include <QStringList>
+#pragma once
 #include <QDir>
 #include <QPair>
+#include <QStringList>
 #include <QVariant>
 
 
-class OtamaGenerator
-{
+class OtamaGenerator {
 public:
     OtamaGenerator(const QString &view, const QList<QPair<QString, QVariant::Type>> &fields, int pkIdx, int autoValIdx);
     bool generate(const QString &dstDir) const;
@@ -19,8 +16,7 @@ protected:
 private:
     QString viewName;
     QList<QPair<QString, QVariant::Type>> fieldList;
-    int primaryKeyIndex;
-    int autoValueIndex;
+    int primaryKeyIndex {0};
+    int autoValueIndex {0};
 };
 
-#endif // OTAMAGENERATOR_H

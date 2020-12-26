@@ -6,29 +6,26 @@
  */
 
 #include "sqlobjgenerator.h"
-#include "global.h"
 #include "filewriter.h"
+#include "global.h"
 #include "tableschema.h"
 
-constexpr auto SQLOBJECT_HEADER_TEMPLATE =                   \
-    "#ifndef %1OBJECT_H\n"                                   \
-    "#define %1OBJECT_H\n"                                   \
-    "\n"                                                     \
-    "#include <TSqlObject>\n"                                \
-    "#include <QSharedData>\n"                               \
-    "\n\n"                                                   \
-    "class T_MODEL_EXPORT %2Object : public TSqlObject, public QSharedData\n" \
-    "{\n"                                                    \
-    "public:\n";
+constexpr auto SQLOBJECT_HEADER_TEMPLATE = "#ifndef %1OBJECT_H\n"
+                                           "#define %1OBJECT_H\n"
+                                           "\n"
+                                           "#include <TSqlObject>\n"
+                                           "#include <QSharedData>\n"
+                                           "\n\n"
+                                           "class T_MODEL_EXPORT %2Object : public TSqlObject, public QSharedData\n"
+                                           "{\n"
+                                           "public:\n";
 
-constexpr auto SQLOBJECT_PROPERTY_TEMPLATE =         \
-    "    Q_PROPERTY(%1 %2 READ get%2 WRITE set%2)\n" \
-    "    T_DEFINE_PROPERTY(%1, %2)\n";
+constexpr auto SQLOBJECT_PROPERTY_TEMPLATE = "    Q_PROPERTY(%1 %2 READ get%2 WRITE set%2)\n"
+                                             "    T_DEFINE_PROPERTY(%1, %2)\n";
 
-constexpr auto SQLOBJECT_FOOTER_TEMPLATE = \
-    "};\n"                         \
-    "\n"                           \
-    "#endif // %1OBJECT_H\n";
+constexpr auto SQLOBJECT_FOOTER_TEMPLATE = "};\n"
+                                           "\n"
+                                           "#endif // %1OBJECT_H\n";
 
 
 static bool isNumericType(const QString &typeName)
@@ -54,8 +51,14 @@ static bool isNumericType(const QString &typeName)
 }
 
 
-SqlObjGenerator::SqlObjGenerator(const QString &model, const QString &table)
-    : tableSch(new TableSchema(table))
+inline bool isBoolType(const QString &typeName)
+{
+    return (QMetaType::type(typeName.toLatin1()) == QMetaType::Bool);
+}
+
+
+SqlObjGenerator::SqlObjGenerator(const QString &model, const QString &table) :
+    tableSch(new TableSchema(table))
 {
     modelName = (!model.isEmpty()) ? model : fieldNameToEnumName(table);
 }
@@ -84,6 +87,8 @@ QString SqlObjGenerator::generate(const QString &dstDir)
         const QPair<QString, QString> &p = it.next();
         if (isNumericType(p.second)) {
             output += QString("    %1 %2 {0};\n").arg(p.second, p.first);
+        } else if (isBoolType(p.second)) {
+            output += QString("    %1 %2 {false};\n").arg(p.second, p.first);
         } else {
             output += QString("    %1 %2;\n").arg(p.second, p.first);
         }

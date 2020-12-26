@@ -5,14 +5,14 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TBson>
+#include "tsystemglobal.h"
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QRegExp>
 #include <QStringList>
-#include <QCoreApplication>
 #include <QtEndian>
+#include <TBson>
 #include <atomic>
-#include "tsystemglobal.h"
 extern "C" {
 #include <bson.h>
 }
@@ -24,7 +24,8 @@ extern "C" {
 
 TBson::TBson() :
     bsonData(bson_new())
-{ }
+{
+}
 
 
 TBson::~TBson()
@@ -90,7 +91,8 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             if (bson_init_static(sub, docbuf, doclen)) {
                 ret[key] = fromBson(sub).values();
             }
-            break; }
+            break;
+        }
 
         case BSON_TYPE_DOCUMENT: {
             const uint8_t *docbuf = nullptr;
@@ -101,7 +103,8 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             if (bson_init_static(sub, docbuf, doclen)) {
                 ret[key] = fromBson(sub);
             }
-            break; }
+            break;
+        }
 
         case BSON_TYPE_BINARY: {
             const uint8_t *binary = nullptr;
@@ -112,7 +115,8 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             if (binary) {
                 ret[key] = QByteArray((char *)binary, len);
             }
-            break; }
+            break;
+        }
 
         case BSON_TYPE_UNDEFINED:
             ret[key] = QVariant();
@@ -122,7 +126,8 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             char oidhex[25];
             bson_oid_to_string(bson_iter_oid(&it), oidhex);
             ret[key] = QString(oidhex);
-            break; }
+            break;
+        }
 
         case BSON_TYPE_BOOL:
             ret[key] = (bool)bson_iter_bool(&it);
@@ -141,7 +146,8 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             QDateTime date(dt, tm, Qt::UTC);
 #endif
             ret[key] = date;
-            break; }
+            break;
+        }
 
         case BSON_TYPE_NULL:
             ret[key] = QVariant();
@@ -167,7 +173,7 @@ QVariantMap TBson::fromBson(const TBsonObject *obj)
             ret[key] = (qint64)bson_iter_int64(&it);
             break;
 
-        case BSON_TYPE_CODEWSCOPE: // FALLTHRU
+        case BSON_TYPE_CODEWSCOPE:  // FALLTHRU
         case BSON_TYPE_TIMESTAMP:  // FALLTHRU (internal use)
             // do nothing
             break;
@@ -240,16 +246,18 @@ static bool appendBsonValue(bson_t *bson, const QString &key, const QVariant &va
         qint64 ms = utcDate.time().msec();
         qint64 tm = utcDate.toTime_t() * 1000LL;
         if (ms > 0) {
-          tm += ms;
+            tm += ms;
         }
         BSON_APPEND_DATE_TIME(bson, qPrintable(key), tm);
 #endif
-        break; }
+        break;
+    }
 
     case QVariant::ByteArray: {
         QByteArray ba = value.toByteArray();
         BSON_APPEND_BINARY(bson, qPrintable(key), BSON_SUBTYPE_BINARY, (uint8_t *)ba.constData(), ba.length());
-        break; }
+        break;
+    }
 
     case QVariant::List:  // FALLTHRU
     case QVariant::StringList: {
@@ -257,11 +265,12 @@ static bool appendBsonValue(bson_t *bson, const QString &key, const QVariant &va
         BSON_APPEND_ARRAY_BEGIN(bson, qPrintable(key), &child);
 
         int i = 0;
-        for (auto &var : (const QList<QVariant>&)value.toList()) {
+        for (auto &var : (const QList<QVariant> &)value.toList()) {
             appendBsonValue(&child, QString::number(i++), var);
         }
         bson_append_array_end(bson, &child);
-        break; }
+        break;
+    }
 
     case QVariant::Invalid:
         BSON_APPEND_UNDEFINED(bson, qPrintable(key));
@@ -296,7 +305,9 @@ bool TBson::insert(const QString &key, const QVariant &value)
 TBson TBson::toBson(const QVariantMap &map)
 {
     TBson ret;
-    appendBson(ret.data(), map);
+    if (!map.isEmpty()) {
+        appendBson(ret.data(), map);
+    }
     return ret;
 }
 
@@ -304,7 +315,9 @@ TBson TBson::toBson(const QVariantMap &map)
 TBson TBson::toBson(const QString &op, const QVariantMap &map)
 {
     TBson ret;
-    BSON_APPEND_DOCUMENT((bson_t *)ret.data(), qPrintable(op), (const bson_t *)TBson::toBson(map).constData());
+    if (!op.isEmpty()) {
+        BSON_APPEND_DOCUMENT((bson_t *)ret.data(), qPrintable(op), (const bson_t *)TBson::toBson(map).constData());
+    }
     return ret;
 }
 
@@ -325,6 +338,7 @@ TBson TBson::toBson(const QVariantMap &query, const QVariantMap &orderBy)
         appendBson(&child, orderBy);
         bson_append_document_end((bson_t *)ret.data(), &child);
     }
+
     return ret;
 }
 

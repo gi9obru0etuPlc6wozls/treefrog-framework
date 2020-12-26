@@ -5,12 +5,12 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
+#include "util.h"
 #include <QDir>
 #include <QFileInfo>
 #include <cstdio>
-#include "util.h"
 
-QString dataDirPath = QLatin1String(TREEFROG_DATA_DIR) + QDir::separator() + "defaults" + QDir::separator();
+QString dataDirPath = QLatin1String(TREEFROG_DATA_DIR) + "/defaults/";
 
 
 void copy(const QString &src, const QString &dst)
@@ -19,7 +19,7 @@ void copy(const QString &src, const QString &dst)
     QFileInfo dfile(dst);
     if (sfile.exists() && !dfile.exists()) {
         if (sfile.copy(dst)) {
-            printf("  created   %s\n", qPrintable(QDir::cleanPath(dst)));
+            std::printf("  created   %s\n", qPrintable(QDir::cleanPath(dst)));
         } else {
             qCritical("failed to create a file %s", qPrintable(QDir::cleanPath(dst)));
         }
@@ -38,7 +38,7 @@ bool rmpath(const QString &path)
 {
     bool res = QDir(path).rmpath(".");
     if (res) {
-        printf("  removed   %s\n", qPrintable(QDir::cleanPath(path)));
+        std::printf("  removed   %s\n", qPrintable(QDir::cleanPath(path)));
     }
     return res;
 }
@@ -55,7 +55,7 @@ bool remove(QFile &file)
 {
     bool ret = file.remove();
     if (ret) {
-        printf("  removed   %s\n", qPrintable(QDir::cleanPath(file.fileName())));
+        std::printf("  removed   %s\n", qPrintable(QDir::cleanPath(file.fileName())));
     }
     return ret;
 }

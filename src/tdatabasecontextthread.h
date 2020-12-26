@@ -1,15 +1,13 @@
-#ifndef TDATABASECONTEXTTHREAD_H
-#define TDATABASECONTEXTTHREAD_H
-
-#include <TGlobal>
-#include <TDatabaseContext>
+#pragma once
 #include <QThread>
+#include <TDatabaseContext>
+#include <TGlobal>
 
 
-class T_CORE_EXPORT TDatabaseContextThread : public QThread, public TDatabaseContext
-{
+class T_CORE_EXPORT TDatabaseContextThread : public QThread, public TDatabaseContext {
 public:
-    TDatabaseContextThread(QObject *parent = nullptr) : QThread(parent), TDatabaseContext() { }
+    TDatabaseContextThread(QObject *parent = nullptr) :
+        QThread(parent), TDatabaseContext() { }
     ~TDatabaseContextThread() = default;
     virtual void run() override;
 
@@ -17,4 +15,3 @@ public:
     T_DISABLE_MOVE(TDatabaseContextThread)
 };
 
-#endif // TDATABASECONTEXTTHREAD_H

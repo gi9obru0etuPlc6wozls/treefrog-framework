@@ -7,8 +7,9 @@
 
 #include "tsessionsqlobjectstore.h"
 #include "tsessionobject.h"
-#include <TSqlORMapper>
 #include <TCriteria>
+#include <TSqlORMapper>
+#include <mutex>
 
 
 static void createSessionTable()
@@ -23,7 +24,8 @@ static void createSessionTable()
         }
     };
 
-    T_ONCE(Table::create());
+    static std::once_flag once;
+    std::call_once(once, []() { Table::create(); });
 }
 
 /*!

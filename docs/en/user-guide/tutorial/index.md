@@ -135,7 +135,7 @@ If a required SQL driver is not included in the Qt SDK, the following error mess
  QSqlDatabase: QMYSQL driver not loaded
 ```
 
-If you receive this message, download the SQL database driver from the [download page](http://www.treefrogframework.org/download){:target="_blank"}, and install it.
+If you receive this message, the Qt SQL driver may not be installed. Install the driver for the RDBM.
 
 You can check which SQL drivers are installed with the following command;
 
@@ -219,7 +219,7 @@ To start the build process, run the following command only once; it will generat
 A WARNING message will be displayed, but there is actually no problem. Next, run the make command to compile the controller, model, view, and helper.
 
 ```
- $ make     (On MinGW run 'mingw32-make', on MSVC run 'nmake' command instead)
+ $ make     (On MSVC run 'nmake' command instead)
 ```
 
 If the build succeeds, four shared libraries (controller, model, view, helper) will be created in the lib directory. By default, the library is generated in debug mode; however, you can regenerate the Makefile, using the following command, to create a library in release mode.
@@ -287,6 +287,17 @@ Restart command:
 ```
 
 If the firewall is in place, make sure that the correct port is open (the default is port 8800).
+
+For reference, the following command shows the current URL routing information.
+```
+ $ treefrog --show-routes
+ Available controllers:
+   match   /blog/index  ->  blogcontroller.index()
+   match   /blog/show/:param  ->  blogcontroller.show(id)
+   match   /blog/create  ->  blogcontroller.create()
+   match   /blog/save/:param  ->  blogcontroller.save(id)
+   match   /blog/remove/:param  ->  blogcontroller.remove(id)
+```
 
 ## Browser Access
 

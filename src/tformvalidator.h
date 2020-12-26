@@ -1,15 +1,12 @@
-#ifndef TFORMVALIDATOR_H
-#define TFORMVALIDATOR_H
-
-#include <QStringList>
-#include <QRegExp>
+#pragma once
 #include <QPair>
+#include <QRegExp>
+#include <QStringList>
 #include <QVariant>
 #include <TGlobal>
 
 
-class T_CORE_EXPORT TFormValidator
-{
+class T_CORE_EXPORT TFormValidator {
 public:
     TFormValidator() { }
     TFormValidator(const TFormValidator &other);
@@ -44,8 +41,7 @@ public:
     void setValidationError(const QString &key, const QString &errorMessage);
 
 protected:
-    class RuleEntry
-    {
+    class RuleEntry {
     public:
         QString key;
         int rule;
@@ -74,12 +70,17 @@ private:
 
 
 inline void TFormValidator::setDateFormat(const QString &format)
-{ dateFmt = format; }
+{
+    dateFmt = format;
+}
 
 inline void TFormValidator::setTimeFormat(const QString &format)
-{ timeFmt = format; }
+{
+    timeFmt = format;
+}
 
 inline void TFormValidator::setDateTimeFormat(const QString &format)
-{ dateTimeFmt = format; }
+{
+    dateTimeFmt = format;
+}
 
-#endif // TFORMVALIDATOR_H

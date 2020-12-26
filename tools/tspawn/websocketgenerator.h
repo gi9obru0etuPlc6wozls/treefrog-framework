@@ -1,11 +1,8 @@
-#ifndef WEBSOCKETGENERATOR_H
-#define WEBSOCKETGENERATOR_H
-
+#pragma once
 #include <QtCore>
 
 
-class WebSocketGenerator
-{
+class WebSocketGenerator {
 public:
     WebSocketGenerator(const QString &name);
     bool generate(const QString &dst) const;
@@ -13,6 +10,4 @@ public:
 private:
     QString name;
 };
-
-#endif // WEBSOCKETGENERATOR_H
 

@@ -5,13 +5,13 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <QString>
-#include <QMap>
-#include <QCoreApplication>
-#include <QTextCodec>
-#include <QSettings>
-#include <QFileInfo>
 #include "viewconverter.h"
+#include <QCoreApplication>
+#include <QFileInfo>
+#include <QMap>
+#include <QSettings>
+#include <QString>
+#include <QTextCodec>
 
 constexpr auto DEFAULT_OUTPUT_DIR = "viewcodes";
 
@@ -21,7 +21,7 @@ extern int defaultTrimMode;
 
 static int usage()
 {
-    printf("usage: tmake [-f config-file] [-v view-dir] [-d output-dir] [-p|-P]\n");
+    std::printf("usage: tmake [-f config-file] [-v view-dir] [-d output-dir] [-p|-P]\n");
     return 0;
 }
 
@@ -52,9 +52,9 @@ int main(int argc, char *argv[])
 
     if (!args.value("-f").isEmpty()) {
         appIni = args.value("-f");
-        devIni = QFileInfo(appIni).dir().path() + QDir::separator() + "development.ini";
+        devIni = QFileInfo(appIni).dir().path() + "/development.ini";
     } else {
-        QString dir = QLatin1String("..") + QDir::separator() + QLatin1String("..") + QDir::separator() + "config" +  QDir::separator();
+        const QString dir("../../config/");
         appIni = dir + "application.ini";
         devIni = dir + "development.ini";
     }
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(codec);
 
     defaultTrimMode = devSetting.value("Erb.DefaultTrimMode", "1").toInt();
-    printf("Erb.DefaultTrimMode: %d\n", defaultTrimMode);
+    std::printf("Erb.DefaultTrimMode: %d\n", defaultTrimMode);
 
     QDir viewDir(".");
     if (!args.value("-v").isEmpty()) {
@@ -97,11 +97,11 @@ int main(int argc, char *argv[])
 
     if (outputDir.exists()) {
         if (outputDir.path() != ".") {
-            printf("  exists   %s\n", qPrintable(outputDir.path()));
+            std::printf("  exists   %s\n", qPrintable(outputDir.path()));
         }
     } else {
         if (outputDir.mkpath(".")) {
-            printf("  created  %s\n", qPrintable(outputDir.path()));
+            std::printf("  created  %s\n", qPrintable(outputDir.path()));
         } else {
             usage();
             return 1;

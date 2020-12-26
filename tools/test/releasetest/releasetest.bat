@@ -16,10 +16,19 @@ if not "%TFENV%" == "" (
   call "..\..\..\tfenv.bat"
 )
 
+for %%I in (nmake.exe) do if exist %%~$path:I set NMAKE=%%~$path:I
 for %%I in (qmake.exe) do if exist %%~$path:I set QMAKE=%%~$path:I
 for %%I in (cmake.exe) do if exist %%~$path:I set CMAKE=%%~$path:I
 for %%I in (sqlite3.exe) do if exist %%~$path:I set SQLITE=%%~$path:I
 if "%SQLITE%" == "" for %%I in (sqlite3-bin.exe) do if exist %%~$path:I set SQLITE=%%~$path:I
+
+if "%NMAKE%" == "" (
+  echo;
+  echo nmake.exe command not found.
+  call :CleanUp
+  pause
+  exit /B 1
+)
 
 if "%QMAKE%" == "" (
   echo;
@@ -28,6 +37,7 @@ if "%QMAKE%" == "" (
   pause
   exit /B 1
 )
+
 
 cd /D %BASEDIR%
 rd /Q /S %APPNAME%
@@ -108,12 +118,18 @@ exit /B 0
 ::
 :CheckWebApp
 cd /D %APPDIR%
+"%1" --show-routes
+if ERRORLEVEL 1 (
+  echo App Error!
+  exit /B 1
+)
 echo;
 echo Starting webapp..
 set RES=1
 "%1" -e dev -d -p %PORT% %APPDIR%
 if ERRORLEVEL 1 (
   echo App Start Error!
+  exit /B 1
 )
 
 timeout 1 /nobreak >nul

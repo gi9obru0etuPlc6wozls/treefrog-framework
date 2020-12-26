@@ -81,7 +81,7 @@ created_at と updated_at のフィールドがあると、TreeFrog はそれぞ
 
 ### 楽観的ロック (Optimistic Lock)
 
-楽観的ロックとは、更新の時に行ロックをかけず、他から更新されていないことを検証しつつデータを保存することです。実際のロックはかけないので、処理速度の向上がちょっとだけ期待できます。詳細は[O/Rマッピングの章]({{ site.baseurl }}/user-guide/ja/model/or-mapping.html){:target="_blank"}をご覧ください。
+楽観的ロックとは、更新の時に行ロックをかけず、他から更新されていないことを検証しつつデータを保存することです。実際のロックはかけないので、処理速度の向上がちょっとだけ期待できます。詳細は[O/Rマッピングの章]({{ site.baseurl }}/ja/user-guide/model/or-mapping.html){:target="_blank"}をご覧ください。
 
 ## データベースの情報を設定
 
@@ -136,7 +136,8 @@ SQLite の例：
  QSqlDatabase: QMYSQL driver not loaded
 ```
 
-この場合、[ダウンロードのページ](http://www.treefrogframework.org/ja/%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89){:target="_blank"}でSQLデータベースドライバをダウンロードして、インストールしてください。<br>
+QtのSQLドライバがインストールされていない可能性があります。RDBMのQtドライバをインストールしてください。
+
 組み込まれたSQLドライバは次のコマンドで確認することができます。
 
 ```
@@ -220,7 +221,7 @@ make する前に、一度だけ次のコマンドを実行し、Makefile を生
 WARNING メッセージが表示されますが、問題はありません。その後、make コマンドを実行すると、コントローラ、モデル、ビュー、ヘルパの全てをコンパイルします。
 
 ```
- $ make     （MinGWの場合は mingw32-make, MSVCの場合は nmake）
+ $ make     （MSVCの場合は nmake）
 ```
 
 ビルドが成功すると、４つの共有ライブラリ（controller, model, view, helper）が lib ディレクトリに作られます。<br>
@@ -290,6 +291,17 @@ Windows では、Web アプリケーションをデバッグモードでビル�
 ```
 
 ★ もしファイヤーウォールが設定されている場合は、ポート（デフォルト：8800）を開けてください。
+
+参考までに、次のコマンドでURLルーティングを確認できます。
+```
+ $ treefrog --show-routes
+ Available controllers:
+   match   /blog/index  ->  blogcontroller.index()
+   match   /blog/show/:param  ->  blogcontroller.show(id)
+   match   /blog/create  ->  blogcontroller.create()
+   match   /blog/save/:param  ->  blogcontroller.save(id)
+   match   /blog/remove/:param  ->  blogcontroller.remove(id)
+```
 
 ## ブラウザでアクセス
 

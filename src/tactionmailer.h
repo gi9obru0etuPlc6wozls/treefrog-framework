@@ -1,11 +1,8 @@
-#ifndef TACTIONMAILER_H
-#define TACTIONMAILER_H
-
+#pragma once
 #include <TAbstractController>
 
 
-class T_CORE_EXPORT TActionMailer : public TAbstractController
-{
+class T_CORE_EXPORT TActionMailer : public TAbstractController {
 public:
     TActionMailer();
     virtual ~TActionMailer() { }
@@ -20,4 +17,3 @@ private:
     T_DISABLE_MOVE(TActionMailer)
 };
 
-#endif // TACTIONMAILER_H

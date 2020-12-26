@@ -1,18 +1,15 @@
-#ifndef TREDIS_H
-#define TREDIS_H
-
+#pragma once
+#include <QByteArray>
+#include <QStringList>
+#include <QVariant>
 #include <TGlobal>
 #include <TKvsDatabase>
 #include <TfNamespace>
-#include <QVariant>
-#include <QByteArray>
-#include <QStringList>
 
 class TRedisDriver;
 
 
-class T_CORE_EXPORT TRedis
-{
+class T_CORE_EXPORT TRedis {
 public:
     TRedis();
     TRedis(const TRedis &other);
@@ -140,4 +137,3 @@ inline QString TRedis::hgets(const QByteArray &key, const QByteArray &field)
     return QString::fromUtf8(hget(key, field));
 }
 
-#endif // TREDIS_H

@@ -5,17 +5,17 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TSqlQuery>
-#include <TWebApplication>
-#include <TAppSettings>
 #include "tsystemglobal.h"
 #include <QMap>
 #include <QMutex>
 #include <QMutexLocker>
+#include <TAppSettings>
+#include <TSqlQuery>
+#include <TWebApplication>
 
 namespace {
-    QMap<QString, QString> queryCache;
-    QMutex cacheMutex;
+QMap<QString, QString> queryCache;
+QMutex cacheMutex;
 }
 
 /*!
@@ -30,12 +30,14 @@ namespace {
 */
 TSqlQuery::TSqlQuery(int databaseId) :
     QSqlQuery(QString(), Tf::currentSqlDatabase(databaseId))
-{ }
+{
+}
 
 
 TSqlQuery::TSqlQuery(QSqlDatabase db) :
     QSqlQuery(db)
-{ }
+{
+}
 
 
 /*!
@@ -75,8 +77,7 @@ bool TSqlQuery::load(const QString &filename)
 */
 QString TSqlQuery::queryDirPath() const
 {
-    QString dir = Tf::app()->webRootPath() + Tf::appSettings()->value(Tf::SqlQueriesStoredDirectory).toString();
-    dir.replace(QChar('/'), QDir::separator());
+    const QString dir = Tf::app()->webRootPath() + Tf::appSettings()->value(Tf::SqlQueriesStoredDirectory).toString();
     return dir;
 }
 

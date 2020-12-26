@@ -1,14 +1,11 @@
-#ifndef ABSTRACTOBJGENERATOR_H
-#define ABSTRACTOBJGENERATOR_H
-
-#include <QString>
+#pragma once
 #include <QList>
 #include <QPair>
+#include <QString>
 #include <QVariant>
 
 
-class AbstractObjGenerator
-{
+class AbstractObjGenerator {
 public:
     virtual ~AbstractObjGenerator() { }
     virtual QString generate(const QString &dstDir) = 0;
@@ -18,4 +15,3 @@ public:
     virtual int lockRevisionIndex() const { return -1; }
 };
 
-#endif // ABSTRACTOBJGENERATOR_H

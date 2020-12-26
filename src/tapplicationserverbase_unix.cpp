@@ -5,24 +5,28 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <QTcpServer>
-#include <QFile>
-#include <TSystemGlobal>
 #include "tapplicationserverbase.h"
 #include "tfcore_unix.h"
+#include <QFile>
+#include <QTcpServer>
+#include <TSystemGlobal>
+#include <cstring>
+#include <fcntl.h>
+#include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 
 void TApplicationServerBase::nativeSocketInit()
-{ }
+{
+}
 
 
 void TApplicationServerBase::nativeSocketCleanup()
-{ }
+{
+}
 
 /*!
   Listen a port for connections on a socket.
@@ -38,7 +42,7 @@ int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 po
         return sd;
     }
 
-    sd = duplicateSocket(server.socketDescriptor()); // duplicate
+    sd = duplicateSocket(server.socketDescriptor());  // duplicate
 
     if (flag == CloseOnExec) {
         ::fcntl(sd, F_SETFD, ::fcntl(sd, F_GETFD) | FD_CLOEXEC);
@@ -46,6 +50,14 @@ int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 po
         ::fcntl(sd, F_SETFD, 0);  // clear
     }
     ::fcntl(sd, F_SETFL, ::fcntl(sd, F_GETFL) | O_NONBLOCK);  // non-block
+
+    int on = 1;
+    ::setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));  // TCP_NODELAY
+
+#ifdef Q_OS_DARWIN
+    on = 1;
+    ::setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));  // NOSIGPIPE
+#endif
 
     server.close();
     return sd;
@@ -65,7 +77,7 @@ int TApplicationServerBase::nativeListen(const QString &fileDomain, OpenFlag fla
         tSystemError("too long name for UNIX domain socket  [%s:%d]", __FILE__, __LINE__);
         return sd;
     }
-    strncpy(addr.sun_path, fileDomain.toLatin1().data(), sizeof(addr.sun_path));
+    std::strncpy(addr.sun_path, fileDomain.toLatin1().data(), sizeof(addr.sun_path) - 1);
 
     // create unix domain socket
     sd = ::socket(PF_UNIX, SOCK_STREAM, 0);
@@ -75,7 +87,7 @@ int TApplicationServerBase::nativeListen(const QString &fileDomain, OpenFlag fla
     }
 
     if (flag == CloseOnExec) {
-        ::fcntl(sd, F_SETFD, FD_CLOEXEC); // set close-on-exec flag
+        ::fcntl(sd, F_SETFD, FD_CLOEXEC);  // set close-on-exec flag
     }
     ::fcntl(sd, F_SETFL, ::fcntl(sd, F_GETFL) | O_NONBLOCK);  // non-block
 
@@ -93,7 +105,7 @@ int TApplicationServerBase::nativeListen(const QString &fileDomain, OpenFlag fla
     file.setPermissions((QFile::Permissions)0x777);
 
     // Listen
-    if (::listen(sd, 50) < 0) {
+    if (::listen(sd, SOMAXCONN) < 0) {
         tSystemError("Listen failed  [%s:%d]", __FILE__, __LINE__);
         goto socket_error;
     }
@@ -108,8 +120,9 @@ socket_error:
 
 void TApplicationServerBase::nativeClose(int socket)
 {
-    if (socket > 0)
-        tf_close(socket);
+    if (socket > 0) {
+        tf_close_socket(socket);
+    }
 }
 
 

@@ -1,21 +1,18 @@
-#ifndef TKVSDATABASEPOOL_H
-#define TKVSDATABASEPOOL_H
-
+#pragma once
+#include "tatomic.h"
+#include "tstack.h"
+#include <QBasicTimer>
+#include <QMap>
 #include <QObject>
 #include <QString>
 #include <QVector>
-#include <QMap>
-#include <QBasicTimer>
-#include <TKvsDatabase>
 #include <TGlobal>
-#include "tatomic.h"
-#include "tstack.h"
+#include <TKvsDatabase>
 
 class QSettings;
 
 
-class T_CORE_EXPORT TKvsDatabasePool : public QObject
-{
+class T_CORE_EXPORT TKvsDatabasePool : public QObject {
     Q_OBJECT
 public:
     ~TKvsDatabasePool();
@@ -43,4 +40,3 @@ private:
     QBasicTimer timer;
 };
 
-#endif // TKVSDATABASEPOOL_H

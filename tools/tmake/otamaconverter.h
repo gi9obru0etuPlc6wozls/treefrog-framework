@@ -1,14 +1,11 @@
-#ifndef OTAMACONVERTER_H
-#define OTAMACONVERTER_H
-
-#include <TGlobal>
-#include <QString>
-#include <QDir>
+#pragma once
 #include "erbconverter.h"
+#include <QDir>
+#include <QString>
+#include <TGlobal>
 
 
-class OtamaConverter
-{
+class OtamaConverter {
 public:
     OtamaConverter(const QDir &output, const QDir &helpers, const QDir &partial);
     ~OtamaConverter();
@@ -25,4 +22,3 @@ private:
     T_DISABLE_MOVE(OtamaConverter)
 };
 
-#endif // OTAMACONVERTER_H

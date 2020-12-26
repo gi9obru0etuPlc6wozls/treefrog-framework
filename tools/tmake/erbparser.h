@@ -1,12 +1,9 @@
-#ifndef ERBPARSER_H
-#define ERBPARSER_H
-
-#include <QString>
+#pragma once
 #include <QPair>
+#include <QString>
 
 
-class ErbParser
-{
+class ErbParser {
 public:
     enum TrimMode {
         TrimOff = 0,
@@ -14,7 +11,8 @@ public:
         StrongTrim,  // Removes whitespaces from the start and the end
     };
 
-    ErbParser(TrimMode mode) : trimMode(mode), pos(0) { }
+    ErbParser(TrimMode mode) :
+        trimMode(mode), pos(0) { }
     void parse(const QString &text);
     QString sourceCode() const { return srcCode; }
     QString includeCode() const { return incCode; }
@@ -34,4 +32,3 @@ private:
     QString startTag;
 };
 
-#endif // ERBPARSER_H

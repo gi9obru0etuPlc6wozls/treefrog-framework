@@ -1,6 +1,4 @@
-#ifndef TSQLTRANSACTION_H
-#define TSQLTRANSACTION_H
-
+#pragma once
 #include <QSqlDatabase>
 #include <TGlobal>
 
@@ -9,8 +7,7 @@
   \brief The Transaction class provides a transaction of database.
 */
 
-class T_CORE_EXPORT TSqlTransaction
-{
+class T_CORE_EXPORT TSqlTransaction {
 public:
     TSqlTransaction();
     TSqlTransaction(const TSqlTransaction &other) = default;
@@ -44,4 +41,3 @@ inline void TSqlTransaction::setDisabled(bool disable)
     _enabled = !disable;
 }
 
-#endif // TSQLTRANSACTION_H

@@ -1,15 +1,12 @@
-#ifndef TDATABASECONTEXT_H
-#define TDATABASECONTEXT_H
-
+#pragma once
 #include <QMap>
 #include <QSqlDatabase>
-#include <TSqlTransaction>
-#include <TKvsDatabase>
 #include <TGlobal>
+#include <TKvsDatabase>
+#include <TSqlTransaction>
 
 
-class T_CORE_EXPORT TDatabaseContext
-{
+class T_CORE_EXPORT TDatabaseContext {
 public:
     TDatabaseContext();
     virtual ~TDatabaseContext();
@@ -41,4 +38,3 @@ private:
     T_DISABLE_MOVE(TDatabaseContext)
 };
 
-#endif // TDATABASECONTEXT_H

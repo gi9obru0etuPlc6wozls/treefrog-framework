@@ -1,12 +1,9 @@
-#ifndef TAPPLICATIONSERVERBASE_H
-#define TAPPLICATIONSERVERBASE_H
-
-#include <TGlobal>
+#pragma once
 #include <QHostAddress>
+#include <TGlobal>
 
 
-class T_CORE_EXPORT TApplicationServerBase
-{
+class T_CORE_EXPORT TApplicationServerBase {
 public:
     enum OpenFlag {
         CloseOnExec = 0,
@@ -42,4 +39,3 @@ private:
     T_DISABLE_MOVE(TApplicationServerBase)
 };
 
-#endif // TAPPLICATIONSERVERBASE_H

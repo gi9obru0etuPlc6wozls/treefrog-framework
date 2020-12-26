@@ -27,15 +27,15 @@ $ sudo make install
 ```
 > configure --enable-debug --enable-gui-mod
 > cd src
-> mingw32-make install
+> nmake install
 > cd ..\tools
-> mingw32-make install
+> nmake install
 > cd ..
 > configure --enable-gui-mod
 > cd src
-> mingw32-make install
+> nmake install
 > cd ..\tools
-> mingw32-make install
+> nmake install
 ```
 
 接下来, 网页应用端的这个设置也是需要的. 编辑项目文件(.pro), 增加"gui"到变量*QT*中.
@@ -58,7 +58,7 @@ $ sudo make install
 ```
 - 在实际中, 使用绝对路径作为文件的路径.
 
-使用QImage类, 你可以忽略长宽比进行转换. 你也可以转换成不同的图像格式. 详细信息请看[Qt 文档](http://qt-project.org/doc/qt-4.8/){:target="_blank"}.
+使用QImage类, 你可以忽略长宽比进行转换. 你也可以转换成不同的图像格式. 详细信息请看[Qt 文档](https://doc.qt.io/qt-5/){:target="_blank"}.
 
 ## 选择图像
 

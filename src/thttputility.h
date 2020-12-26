@@ -1,20 +1,19 @@
-#ifndef THTTPUTILITY_H
-#define THTTPUTILITY_H
-
+#pragma once
 #include <QByteArray>
-#include <QStringList>
 #include <QDateTime>
+#include <QPair>
+#include <QStringList>
 #include <QVariant>
 #include <TGlobal>
 
 class QTextCodec;
 
 
-class T_CORE_EXPORT THttpUtility
-{
+class T_CORE_EXPORT THttpUtility {
 public:
     static QString fromUrlEncoding(const QByteArray &enc);
     static QByteArray toUrlEncoding(const QString &input, const QByteArray &exclude = "-._");
+    static QList<QPair<QString, QString>> fromFormUrlEncoded(const QByteArray &enc);
     static QString htmlEscape(const QString &input, Tf::EscapeFlag flag = Tf::Quotes);
     static QString htmlEscape(int n);
     static QString htmlEscape(uint n);
@@ -121,4 +120,3 @@ inline QString THttpUtility::trimmedQuotes(const QString &string)
     return s;
 }
 
-#endif // THTTPUTILITY_H

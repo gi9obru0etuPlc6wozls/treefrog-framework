@@ -5,22 +5,22 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TAppSettings>
-#include <TSystemGlobal>
-#include <QSettings>
 #include <QCoreApplication>
 #include <QMutexLocker>
+#include <QSettings>
+#include <TAppSettings>
+#include <TSystemGlobal>
 #include <cstdio>
 
 namespace {
-    TAppSettings *appSettings = nullptr;
+TAppSettings *appSettings = nullptr;
 }
 
 
-class AttributeMap : public QMap<int, QString>
-{
+class AttributeMap : public QMap<int, QString> {
 public:
-    AttributeMap() : QMap<int, QString>()
+    AttributeMap() :
+        QMap<int, QString>()
     {
         insert(Tf::ListenPort, "ListenPort");
         insert(Tf::ListenAddress, "ListenAddress");
@@ -40,6 +40,8 @@ public:
         insert(Tf::LimitRequestBody, "LimitRequestBody");
         insert(Tf::EnableCsrfProtectionModule, "EnableCsrfProtectionModule");
         insert(Tf::EnableHttpMethodOverride, "EnableHttpMethodOverride");
+        insert(Tf::EnableForwardedForHeader, "EnableForwardedForHeader");
+        insert(Tf::TrustedProxyServers, "TrustedProxyServers");
         insert(Tf::HttpKeepAliveTimeout, "HttpKeepAliveTimeout");
         insert(Tf::LDPreload, "LDPreload");
         insert(Tf::JavaScriptPath, "JavaScriptPath");
@@ -50,6 +52,7 @@ public:
         insert(Tf::SessionCookieMaxAge, "Session.CookieMaxAge");
         insert(Tf::SessionCookieDomain, "Session.CookieDomain");
         insert(Tf::SessionCookiePath, "Session.CookiePath");
+        insert(Tf::SessionCookieSameSite, "Session.CookieSameSite");
         insert(Tf::SessionGcProbability, "Session.GcProbability");
         insert(Tf::SessionGcMaxLifeTime, "Session.GcMaxLifeTime");
         insert(Tf::SessionSecret, "Session.Secret");
@@ -68,7 +71,7 @@ public:
         insert(Tf::ActionMailerDelayedDelivery, "ActionMailer.DelayedDelivery");
         insert(Tf::ActionMailerSmtpHostName, "ActionMailer.smtp.HostName");
         insert(Tf::ActionMailerSmtpPort, "ActionMailer.smtp.Port");
-        insert(Tf::ActionMailerSmtpEnableSTARTTLS, "ActionMailer.smtp.EnableSTARTTLS");
+        insert(Tf::ActionMailerSmtpRequireTLS, "ActionMailer.smtp.RequireTLS");
         insert(Tf::ActionMailerSmtpAuthentication, "ActionMailer.smtp.Authentication");
         insert(Tf::ActionMailerSmtpUserName, "ActionMailer.smtp.UserName");
         insert(Tf::ActionMailerSmtpPassword, "ActionMailer.smtp.Password");
@@ -88,7 +91,8 @@ Q_GLOBAL_STATIC(AttributeMap, attributeMap)
 
 TAppSettings::TAppSettings(const QString &path) :
     appIniSettings(new QSettings(path, QSettings::IniFormat))
-{ }
+{
+}
 
 
 QVariant TAppSettings::value(Tf::AppAttribute attr, const QVariant &defaultValue) const

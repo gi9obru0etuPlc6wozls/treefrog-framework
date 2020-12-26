@@ -1,16 +1,14 @@
-#ifndef TMULTIPLEXINGSERVER_H
-#define TMULTIPLEXINGSERVER_H
-
-#include <TGlobal>
-#include <TDatabaseContextThread>
-#include <TApplicationServerBase>
-#include <TAccessLog>
+#pragma once
 #include "tatomic.h"
-#include <QMap>
-#include <QList>
+#include <QBasicTimer>
 #include <QByteArray>
 #include <QFileInfo>
-#include <QBasicTimer>
+#include <QList>
+#include <QMap>
+#include <TAccessLog>
+#include <TApplicationServerBase>
+#include <TDatabaseContextThread>
+#include <TGlobal>
 
 class QIODevice;
 class THttpHeader;
@@ -18,8 +16,7 @@ class THttpSendBuffer;
 class TEpollSocket;
 
 
-class T_CORE_EXPORT TMultiplexingServer : public TDatabaseContextThread, public TApplicationServerBase
-{
+class T_CORE_EXPORT TMultiplexingServer : public TDatabaseContextThread, public TApplicationServerBase {
     Q_OBJECT
 public:
     ~TMultiplexingServer();
@@ -41,7 +38,6 @@ signals:
     bool incomingRequest(TEpollSocket *socket);
 
 private:
-    int maxWorkers {0};
     TAtomic<bool> stopped {false};
     int listenSocket {0};
     QBasicTimer reloadTimer;
@@ -69,4 +65,3 @@ public slots:
 };
 */
 
-#endif // TMULTIPLEXINGSERVER_H

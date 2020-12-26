@@ -5,12 +5,14 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
+#include "tfcore_unix.h"
+#include "tkvsdatabasepool.h"
+#include "tsqldatabasepool.h"
+#include "tsystemglobal.h"
+#include <TActionThread>
+#include <TAppSettings>
 #include <TThreadApplicationServer>
 #include <TWebApplication>
-#include <TAppSettings>
-#include <TActionThread>
-#include "tsystemglobal.h"
-#include "tfcore_unix.h"
 #include <thread>
 
 
@@ -35,8 +37,6 @@ TThreadApplicationServer::TThreadApplicationServer(int listeningSocket, QObject 
         });
         threadPoolPtr()->push(thread);
     }
-
-    Q_ASSERT(Tf::app()->multiProcessingModule() == TWebApplication::Thread);
 }
 
 
@@ -61,6 +61,10 @@ bool TThreadApplicationServer::start(bool debugMode)
         return false;
     }
 
+    // To work a timer in main thread
+    TSqlDatabasePool::instance();
+    TKvsDatabasePool::instance();
+
     TStaticInitializeThread::exec();
     QThread::start();
     return true;
@@ -69,7 +73,7 @@ bool TThreadApplicationServer::start(bool debugMode)
 
 void TThreadApplicationServer::stop()
 {
-    if (! QThread::isRunning()) {
+    if (!QThread::isRunning()) {
         return;
     }
 
@@ -87,9 +91,12 @@ void TThreadApplicationServer::stop()
 void TThreadApplicationServer::run()
 {
     constexpr int timeout = 500;  // msec
+    struct pollfd pfd;
 
     while (listenSocket > 0 && !stopFlag) {
-        struct pollfd pfd = { listenSocket, POLLIN, 0 };
+        pfd.fd = listenSocket;
+        pfd.events = POLLIN;
+        pfd.revents = 0;
         int ret = tf_poll(&pfd, 1, timeout);
 
         if (ret < 0) {
@@ -97,13 +104,13 @@ void TThreadApplicationServer::run()
             break;
         }
 
-        if (pfd.revents & POLLIN) {
+        if (ret > 0 && (pfd.revents & POLLIN)) {
             int socketDescriptor = tf_accept4(listenSocket, nullptr, nullptr, (SOCK_CLOEXEC | SOCK_NONBLOCK));
             if (socketDescriptor > 0) {
                 tSystemDebug("incomingConnection  sd:%d  thread count:%d  max:%d", socketDescriptor, TActionThread::threadCount(), maxThreads);
                 TActionThread *thread;
 
-                while (! threadPoolPtr()->pop(thread)) {
+                while (!threadPoolPtr()->pop(thread)) {
                     std::this_thread::yield();
                     Tf::msleep(1);
                 }

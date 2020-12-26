@@ -1,14 +1,11 @@
-#ifndef ERBGENERATOR_H
-#define ERBGENERATOR_H
-
-#include <QStringList>
+#pragma once
 #include <QDir>
 #include <QPair>
+#include <QStringList>
 #include <QVariant>
 
 
-class ErbGenerator
-{
+class ErbGenerator {
 public:
     ErbGenerator(const QString &view, const QList<QPair<QString, QVariant::Type>> &fields, int pkIdx, int autoValIdx);
     bool generate(const QString &dstDir) const;
@@ -16,8 +13,7 @@ public:
 private:
     QString viewName;
     QList<QPair<QString, QVariant::Type>> fieldList;
-    int primaryKeyIndex;
-    int autoValueIndex;
+    int primaryKeyIndex {0};
+    int autoValueIndex {0};
 };
 
-#endif // ERBGENERATOR_H

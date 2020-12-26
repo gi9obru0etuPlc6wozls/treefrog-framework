@@ -1,13 +1,10 @@
-#ifndef VIEWCONVERTER_H
-#define VIEWCONVERTER_H
-
-#include <QString>
+#pragma once
 #include <QDir>
 #include <QFileInfo>
+#include <QString>
 
 
-class ViewConverter
-{
+class ViewConverter {
 public:
     ViewConverter(const QDir &view, const QDir &output, bool projectFile = true);
     ~ViewConverter() { }
@@ -30,4 +27,3 @@ private:
     bool createProFile;
 };
 
-#endif // VIEWCONVERTER_H

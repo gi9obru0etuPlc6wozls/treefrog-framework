@@ -1,9 +1,7 @@
-#ifndef UTIL_H
-#define UTIL_H
-
-#include <QString>
-#include <QDir>
+#pragma once
 #include <QByteArray>
+#include <QDir>
+#include <QString>
 
 extern QString dataDirPath;
 
@@ -14,4 +12,3 @@ extern bool remove(const QString &file);
 extern bool remove(QFile &file);
 extern bool replaceString(const QString &fileName, const QByteArray &before, const QByteArray &after);
 
-#endif // UTIL_H

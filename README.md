@@ -1,6 +1,12 @@
 Small but Powerful and Efficient
 ================================
 
+[![CircleCI](https://circleci.com/gh/treefrogframework/treefrog-framework.svg?style=shield)](https://circleci.com/gh/treefrogframework/treefrog-framework)
+[![TravisCI](https://travis-ci.org/treefrogframework/treefrog-framework.svg?branch=master)](https://travis-ci.org/treefrogframework/treefrog-framework)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Release](https://img.shields.io/github/v/release/treefrogframework/treefrog-framework.svg)](https://github.com/treefrogframework/treefrog-framework/releases)
+[![Docker image](https://img.shields.io/badge/Docker-image-blue.svg)](https://hub.docker.com/r/treefrogframework/treefrog/)
+
 TreeFrog Framework is a high-speed and full-stack web application framework
 based on C++ and Qt, which supports HTTP and WebSocket protocol. Web
 applications can run faster than that of lightweight programming language.
@@ -12,15 +18,13 @@ Features
 --------
  * High performance  - Highly optimized Application server engine of C++
  * O/R mapping  - Conceals complex and troublesome database accesses
- * Template system  - Completely divided templates and presentation logic
- * Support for many DB  - MySQL, PostgreSQL, ODBC, SQLite, Oracle, DB2,
+ * Template system  - ERB-like template engine adopted
+ * Supports for many DB  - MySQL, PostgreSQL, ODBC, SQLite, Oracle, DB2,
    InterBase, MongoDB and Redis.
- * Support WebSocket  - Providing full-duplex communications channels
+ * WebSocket support  - Providing full-duplex communications channels
  * Generator  - Generates scaffolds and Makefiles automatically
- * Cross-platform  - Windows, macOS, Linux, etc. Write once, compile
-   anywhere.
- * Ajax support  - JSON, XML and Plain text available
- * Less resource  -  Stable operation even on Raspberry Pi
+ * Supports various response types  - JSON, XML and CBOR
+ * Cross-platform  - Windows, macOS, Linux, etc. Write once, compile anywhere.
  * OSS  - New BSD License
 
 Requirements

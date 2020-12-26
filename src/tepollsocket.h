@@ -1,12 +1,10 @@
-#ifndef TEPOLLSOCKET_H
-#define TEPOLLSOCKET_H
-
-#include <TGlobal>
+#pragma once
 #include "tatomic.h"
-#include <QObject>
 #include <QByteArray>
 #include <QHostAddress>
+#include <QObject>
 #include <QQueue>
+#include <TGlobal>
 
 class TSendBuffer;
 class THttpHeader;
@@ -17,8 +15,7 @@ class QThread;
 class QFileInfo;
 
 
-class T_CORE_EXPORT TEpollSocket
-{
+class T_CORE_EXPORT TEpollSocket {
 public:
     TEpollSocket(int socketDescriptor, const QHostAddress &address);
     virtual ~TEpollSocket();
@@ -49,7 +46,7 @@ protected:
     virtual void *getRecvBuffer(int size) = 0;
     virtual bool seekRecvBuffer(int pos) = 0;
     static TEpollSocket *searchSocket(int sid);
-    static QList<TEpollSocket*> allSockets();
+    static QList<TEpollSocket *> allSockets();
 
     TAtomic<bool> pollIn {false};
     TAtomic<bool> pollOut {false};
@@ -58,7 +55,7 @@ private:
     int sd {0};  // socket descriptor
     int sid {0};
     QHostAddress clientAddr;
-    QQueue<TSendBuffer*> sendBuf;
+    QQueue<TSendBuffer *> sendBuf;
 
     static void initBuffer(int socketDescriptor);
 
@@ -68,4 +65,3 @@ private:
     T_DISABLE_MOVE(TEpollSocket)
 };
 
-#endif // TEPOLLSOCKET_H

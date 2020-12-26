@@ -5,15 +5,15 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TSystemGlobal>
 #include "tapplicationserverbase.h"
+#include <TSystemGlobal>
 #include <winsock2.h>
 
 
 void TApplicationServerBase::nativeSocketInit()
 {
     WSAData wsadata;
-    if (WSAStartup(MAKEWORD(2,0), &wsadata) != 0) {
+    if (WSAStartup(MAKEWORD(2, 0), &wsadata) != 0) {
         tSystemWarn("WinSock v2.0 initialization failed");
     }
 }
@@ -31,7 +31,7 @@ void TApplicationServerBase::nativeSocketCleanup()
 int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 port, OpenFlag)
 {
     int protocol = (address.protocol() == QAbstractSocket::IPv6Protocol) ? AF_INET6 : AF_INET;
-    SOCKET sock = ::WSASocket(protocol, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+    SOCKET sock = ::WSASocket(protocol, SOCK_STREAM, 0, nullptr, 0, WSA_FLAG_OVERLAPPED);
     if (sock == INVALID_SOCKET) {
         tSystemError("WSASocket Error: %d", WSAGetLastError());
         return -1;
@@ -49,11 +49,11 @@ int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 po
             quint8 tf_s6_addr[16];
         };
         struct tf_sockaddr_in6 {
-            short   sin6_family;            /* AF_INET6 */
-            quint16 sin6_port;              /* Transport level port number */
-            quint32 sin6_flowinfo;          /* IPv6 flow information */
-            struct  tf_in6_addr sin6_addr;  /* IPv6 address */
-            quint32 sin6_scope_id;          /* set of interfaces for a scope */
+            short sin6_family; /* AF_INET6 */
+            quint16 sin6_port; /* Transport level port number */
+            quint32 sin6_flowinfo; /* IPv6 flow information */
+            struct tf_in6_addr sin6_addr; /* IPv6 address */
+            quint32 sin6_scope_id; /* set of interfaces for a scope */
         } sa6;
 
         memset(&sa6, 0, sizeof(sa6));
@@ -67,8 +67,7 @@ int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 po
         }
 
     } else if (address.protocol() == QAbstractSocket::IPv4Protocol
-               || address.protocol() == QAbstractSocket::AnyIPProtocol
-        ) {
+        || address.protocol() == QAbstractSocket::AnyIPProtocol) {
         struct sockaddr_in sa;
         memset(&sa, 0, sizeof(sa));
         sa.sin_family = AF_INET;
@@ -82,7 +81,7 @@ int TApplicationServerBase::nativeListen(const QHostAddress &address, quint16 po
         goto error_socket;
     }
 
-    if (::listen(sock, 50) != 0) {
+    if (::listen(sock, SOMAXCONN) != 0) {
         tSystemError("listen error: %d", WSAGetLastError());
         goto error_socket;
     }
@@ -113,6 +112,6 @@ int TApplicationServerBase::duplicateSocket(int socketDescriptor)
 {
     WSAPROTOCOL_INFO pi;
     ::WSADuplicateSocket(socketDescriptor, ::GetCurrentProcessId(), &pi);
-    SOCKET newsock = ::WSASocket(pi.iAddressFamily, pi.iSocketType,pi.iProtocol, &pi, 0, 0);
+    SOCKET newsock = ::WSASocket(pi.iAddressFamily, pi.iSocketType, pi.iProtocol, &pi, 0, 0);
     return newsock;
 }

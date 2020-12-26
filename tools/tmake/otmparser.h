@@ -1,12 +1,9 @@
-#ifndef OTMPARSER_H
-#define OTMPARSER_H
-
+#pragma once
 #include <QMap>
 #include <QStringList>
 
 
-class OtmParser
-{
+class OtmParser {
 public:
     enum OperatorType {
         TagReplacement = 0,
@@ -39,4 +36,3 @@ private:
     QString repMarker;
 };
 
-#endif // OTMPARSER_H

@@ -1,17 +1,15 @@
-#ifndef TACTIONCONTROLLER_H
-#define TACTIONCONTROLLER_H
-
-#include <TGlobal>
+#pragma once
+#include <QDomDocument>
+#include <QHostAddress>
+#include <QtCore>
 #include <TAbstractController>
+#include <TAccessValidator>
 #include <TActionHelper>
+#include <TCookieJar>
+#include <TGlobal>
 #include <THttpRequest>
 #include <THttpResponse>
 #include <TSession>
-#include <TCookieJar>
-#include <TAccessValidator>
-#include <QtCore>
-#include <QHostAddress>
-#include <QDomDocument>
 
 class TActionView;
 class TAbstractUser;
@@ -19,8 +17,7 @@ class TFormValidator;
 class TCache;
 
 
-class T_CORE_EXPORT TActionController : public QObject, public TAbstractController, public TActionHelper, protected TAccessValidator
-{
+class T_CORE_EXPORT TActionController : public QObject, public TAbstractController, public TActionHelper, protected TAccessValidator {
 public:
     TActionController();
     virtual ~TActionController();
@@ -50,7 +47,7 @@ public:
 
 protected:
     virtual bool preFilter() { return true; }
-    virtual void postFilter() { }
+    virtual void postFilter() {}
     void setLayoutEnabled(bool enable);
     void setLayoutDisabled(bool disable);
     bool layoutEnabled() const;
@@ -63,7 +60,8 @@ protected:
     TSession &session() { return sessionStore; }
     void setSession(const TSession &session);
     bool addCookie(const TCookie &cookie);
-    bool addCookie(const QByteArray &name, const QByteArray &value, const QDateTime &expire = QDateTime(), const QString &path = QString(), const QString &domain = QString(), bool secure = false, bool httpOnly = false);
+    bool addCookie(const QByteArray &name, const QByteArray &value, const QDateTime &expire = QDateTime(), const QString &path = QString(), const QString &domain = QString(), bool secure = false, bool httpOnly = false, const QByteArray &sameSite = "Lax");
+    bool addCookie(const QByteArray &name, const QByteArray &value, qint64 maxAge, const QString &path = QString(), const QString &domain = QString(), bool secure = false, bool httpOnly = false, const QByteArray &sameSite = "Lax");
     QByteArray contentType() const;
     void setContentType(const QByteArray &type);
     bool render(const QString &action = QString(), const QString &layout = QString());
@@ -79,9 +77,9 @@ protected:
     bool renderJson(const QVariantMap &map);
     bool renderJson(const QVariantList &list);
     bool renderJson(const QStringList &list);
-    bool renderAndStoreInCache(const QByteArray &key, int seconds, const QString &action = QString(), const QString &layout = QString());
-    bool renderFromCache(const QByteArray &key);
-    void removeFromCache(const QByteArray &key);
+    bool renderAndCache(const QByteArray &key, int seconds, const QString &action = QString(), const QString &layout = QString());
+    bool renderOnCache(const QByteArray &key);
+    void removeCache(const QByteArray &key);
 #if QT_VERSION >= 0x050c00  // 5.12.0
     bool renderCbor(const QVariant &variant, QCborValue::EncodingOptions opt = QCborValue::NoTransformation);
     bool renderCbor(const QVariantMap &map, QCborValue::EncodingOptions opt = QCborValue::NoTransformation);
@@ -99,13 +97,15 @@ protected:
     bool validateAccess(const TAbstractUser *user);
     int socketId() const { return sockId; }
     // For WebSocket
-    void sendTextToWebSocket(int sid, const QString &text);
-    void sendBinaryToWebSocket(int sid, const QByteArray &binary);
-    void closeWebSokcet(int sid, int closeCode = Tf::NormalClosure);
+    void sendTextToWebSocket(int socketId, const QString &text);
+    void sendBinaryToWebSocket(int socketId, const QByteArray &binary);
+    void closeWebSokcet(int socketId, int closeCode = Tf::NormalClosure);
+    void publish(const QString &topic, const QString &text);
+    void publish(const QString &topic, const QByteArray &binary);
 
     virtual bool userLogin(const TAbstractUser *user);
     virtual void userLogout();
-    virtual void setAccessRules() { }
+    virtual void setAccessRules() {}
 
     THttpRequest &httpRequest();
     THttpResponse &httpResponse() { return response; }
@@ -115,11 +115,13 @@ private:
         SendTextTo,
         SendBinaryTo,
         SendCloseTo,
+        PublishText,
+        PublishBinary,
     };
 
     void setActionName(const QString &name);
     void setArguments(const QStringList &arguments) { args = arguments; }
-    void setSocketId(int sid) { sockId = sid; }
+    void setSocketId(int socketId) { sockId = socketId; }
     bool verifyRequest(const THttpRequest &request) const;
     QByteArray renderView(TActionView *view);
     void exportAllFlashVariants();
@@ -131,7 +133,7 @@ private:
     mutable QString ctrlName;
     QString actName;
     QStringList args;
-    int  statCode {Tf::OK};  // 200 OK
+    int statCode {Tf::OK};  // 200 OK
     bool rendered {false};
     bool layoutEnable {true};
     QString layoutName;
@@ -212,4 +214,3 @@ inline void TActionController::setContentType(const QByteArray &type)
     response.header().setContentType(type);
 }
 
-#endif // TACTIONCONTROLLER_H

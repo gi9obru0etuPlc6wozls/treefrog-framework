@@ -1,6 +1,37 @@
 # ChangeLog
+## 1.30.0
+ - Implemented logics for X-Forwarded-For Header.
+ - Implemented ActionMailer.smtp.RequireTLS parameter in application.ini.
+ - Added a option for showing URL routing to treefrog command.
+ - Updated I/F of ORM functions.
+ - Performance improvement.
+
+## 1.29.0
+ - Fix a bug of max-age of cookie.
+ - Fix a bug of generating select-tag.
+ - Modified to initialize boolean fields in classes generated.
+ - Implemented publish() function in TActionController class.
+ - Rename functions; renderAndStoreInCache() to renderAndCache(),
+   renderFromCache() to renderOnCache(), removeFromCache() to removeCache().
+
+## 1.28.0
+ - Implemented to add a SameSite attribute to cookie.
+ - Modified to add a max-age value to cookie.
+ - Fix a bug of listing available controllers.
+ - Fix a bug of showing a port number by -l option.
+ - Fix a bug of content type in renderText() function.
+
+## 1.27.0
+ - Implemented OAuth2 client.  [Experimental]
+ - Supports for MongoDB version 3.2 and later.
+ - Fix a bug that timer for TSqlDatabasePool stops. #279
+ - Fix a bug not to set all databases to transaction state value.
+ - Fix a bug of execution of diff in tspawn command.
+ - Replaced QDir::separator() by "/". #264
+ - Added a value, svg:image/svg+xml.
+
 ## 1.26.0
- - Added cache modules by SQLite, MongoDB and Redis.
+ - Added cache modules of SQLite, MongoDB and Redis.
  - Updated LZ4 compression algorithm to 1.9.2.
  - Fix a compilation error on Ubuntu 19.10.
  - Changed the epoll module from multi-thread to single thread architecture.

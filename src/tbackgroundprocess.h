@@ -1,17 +1,14 @@
-#ifndef TBACKGROUNDPROCESS_H
-#define TBACKGROUNDPROCESS_H
-
+#pragma once
 #include <QProcess>
-#include <TGlobal>
 #include <TBackgroundProcessHandler>
+#include <TGlobal>
 
 
-class T_CORE_EXPORT TBackgroundProcess : public QProcess
-{
+class T_CORE_EXPORT TBackgroundProcess : public QProcess {
     Q_OBJECT
 public:
     TBackgroundProcess(QObject *parent = nullptr);
-    virtual ~TBackgroundProcess() {}
+    virtual ~TBackgroundProcess() { }
 
     void start(const QString &program, const QStringList &arguments, OpenMode mode = ReadWrite, TBackgroundProcessHandler *handler = nullptr);
     void start(const QString &command, OpenMode mode = ReadWrite, TBackgroundProcessHandler *handler = nullptr);
@@ -32,4 +29,3 @@ private:
     T_DISABLE_MOVE(TBackgroundProcess)
 };
 
-#endif // BACKGROUNDPROCESS_H

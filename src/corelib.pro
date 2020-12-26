@@ -71,6 +71,9 @@ isEmpty( use_gui ) {
   DEFINES += TF_USE_GUI_MODULE
 }
 
+CONFIG *= precompile_header
+PRECOMPILED_HEADER = precompile.h
+
 HEADERS += twebapplication.h
 SOURCES += twebapplication.cpp
 HEADERS += tapplicationserverbase.h
@@ -87,6 +90,8 @@ SOURCES += tactionthread.cpp
 #SOURCES += tactionforkprocess.cpp
 HEADERS += thttpsocket.h
 SOURCES += thttpsocket.cpp
+HEADERS += thttpclient.h
+SOURCES += thttpclient.cpp
 #HEADERS += thttp2socket.h
 #SOURCES += thttp2socket.cpp
 #HEADERS += thttpbuffer.h
@@ -153,6 +158,8 @@ HEADERS += toption.h
 SOURCES += toption.cpp
 HEADERS += ttemporaryfile.h
 SOURCES += ttemporaryfile.cpp
+HEADERS += tcookie.h
+SOURCES += tcookie.cpp
 HEADERS += tcookiejar.h
 SOURCES += tcookiejar.cpp
 HEADERS += tsession.h
@@ -318,12 +325,13 @@ SOURCES += tcachemongostore.cpp
 HEADERS += tcacheredisstore.h
 SOURCES += tcacheredisstore.cpp
 SOURCES += tactioncontroller_qt5.cpp
+HEADERS += toauth2client.h
+SOURCES += toauth2client.cpp
 
 HEADERS += \
            tfnamespace.h \
            tfcore.h \
            tfexception.h \
-           tcookie.h \
            tdispatcher.h \
            tloggerplugin.h \
            tsessionobject.h \
@@ -337,6 +345,7 @@ HEADERS += \
            tcommandlineinterface.h
 
 windows {
+  HEADERS += tfcore_win.h
   SOURCES += twebapplication_win.cpp
   SOURCES += tapplicationserverbase_win.cpp
   SOURCES += tfileaiowriter_win.cpp

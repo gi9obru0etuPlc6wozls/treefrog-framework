@@ -1,15 +1,12 @@
-#ifndef TABSTRACTMODEL_H
-#define TABSTRACTMODEL_H
-
-#include <QtCore>
+#pragma once
 #include <QVariant>
+#include <QtCore>
 #include <TGlobal>
 
 class TModelObject;
 
 
-class T_CORE_EXPORT TAbstractModel
-{
+class T_CORE_EXPORT TAbstractModel {
 public:
     virtual ~TAbstractModel() { }
     virtual bool create();
@@ -34,4 +31,3 @@ protected:
     virtual const TModelObject *modelData() const { return nullptr; }
 };
 
-#endif // TABSTRACTMODEL_H

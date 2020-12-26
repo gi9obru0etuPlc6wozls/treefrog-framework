@@ -14,12 +14,12 @@ Web applications can run faster than that of scripting language because the serv
 
   1. High performance - Highly optimized Application server engine of C++.
   2. O/R mapping  - Conceals complex and troublesome database accesses
-  3. Template system  - ERB-like template engine
-  4. Support for many DB - MySQL, PostgreSQL, ODBC, SQLite, MongoDB, Redis, etc.
-  5. Cross-platform  - Same source code can work on Windows, macOS and Linux
-  6. Support WebSocket - Providing full-duplex communications channels
-  7. Generator - Automatically generates scaffolds and Makefiles
-  8. Less resource -  Stable operation even on Raspberry Pi
+  3. Template system  - ERB-like template engine adopted
+  4. Supported databases  - MySQL, PostgreSQL, ODBC, SQLite, MongoDB, Redis, etc.
+  5. WebSocket support  - Providing full-duplex communications channels
+  6. Generator  - Automatically generates scaffolds and Makefiles
+  7. Various response types  - JSON, XML and CBOR
+  8. Cross-platform  - Same source code can work on Windows, macOS and Linux
   9. OSS  - New BSD License
 
 
@@ -37,17 +37,56 @@ Try TreeFrog Framework which combines high productivity and high speed operation
 
 ## <i class="fa fa-bell" aria-hidden="true"></i> News
 
+Aug. 21, 2020
+
+### TreeFrog Framework version 1.30.0 (stable) release <span style="color: red;">New!</span>
+
+  - Implemented logics for X-Forwarded-For Header.
+  - Implemented ActionMailer.smtp.RequireTLS parameter in application.ini.
+  - Added a option for showing URL routing to treefrog command.
+  - Updated I/F of ORM functions.
+  - Performance improvement.
+
+  [<i class="fas fa-download"></i> Download this version](/en/download/)
+
+May. 5, 2020
+
+### TreeFrog Framework version 1.29.0 (stable) release
+
+  - Fix a bug of max-age of cookie.
+  - Fix a bug of generating select-tag.
+  - Modified to initialize boolean fields in classes generated.
+  - Implemented publish() function in TActionController class.
+
+Feb. 11, 2020
+
+### TreeFrog Framework version 1.28.0 (stable) release
+
+  - Implemented to add a SameSite attribute to cookie.
+  - Modified to add a max-age value to cookie.
+  - Fix a bug of listing available controllers.
+  - Fix a bug of showing a port number by -l option.
+  - Fix a bug of content type in renderText() function.
+
+Dec. 5, 2019
+
+### TreeFrog Framework version 1.27.0 (stable) release
+
+  - Implemented OAuth2 client.  [Experimental]
+  - Supports for MongoDB version 3.2 and later.
+  - Fix a bug that timer for TSqlDatabasePool stops. #279
+  - Fix a bug not to set all databases to transaction state value.
+  - Fix a bug of execution of diff in tspawn command.
+
 Oct. 19, 2019
 
-### TreeFrog Framework version 1.26.0 (stable) release <span style="color: red;">New!</span>
+### TreeFrog Framework version 1.26.0 (stable) release
 
   - Added cache modules by SQLite, MongoDB and Redis.
   - Updated LZ4 compression algorithm to 1.9.2.
   - Fix a compilation error on Ubuntu 19.10.
   - Changed the epoll MPM from multi-thread to single thread architecture.
   - Performance improvement.
-
-  [<i class="fas fa-download"></i> Download this version](/en/download/)
 
 July 20, 2019
 
@@ -95,8 +134,8 @@ Jun. 10, 2018
 
 TreeFrog Framework is New BSD licensed open source project and completely free to use. However, the amount of effort needed to maintain and develop new features for the project is not sustainable without proper financial backing. We accept donations from sponsors and individual donors via the following methods:
 
- - Support via [Patreon <i class="fas fa-external-link-alt"></i>](https://www.patreon.com/treefrogframework)
  - Donation with [PayPal <i class="fas fa-external-link-alt"></i>](https://www.paypal.me/aoyamakazuharu)
+ - Become a [sponsor in GitHub](https://github.com/sponsors/treefrogframework)
  - BTC Donation. Address: [12C69oSYQLJmA4yB5QynEAoppJpUSDdcZZ]({{ site.baseurl }}/assets/images/btc_address.png "BTC Address")
 
 I would be pleased if you could consider donating. Thank you!

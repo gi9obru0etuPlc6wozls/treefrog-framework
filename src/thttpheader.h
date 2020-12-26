@@ -1,12 +1,9 @@
-#ifndef THTTPHEADER_H
-#define THTTPHEADER_H
-
-#include <TInternetMessageHeader>
+#pragma once
 #include <TCookie>
+#include <TInternetMessageHeader>
 
 
-class T_CORE_EXPORT THttpHeader : public TInternetMessageHeader
-{
+class T_CORE_EXPORT THttpHeader : public TInternetMessageHeader {
 public:
     THttpHeader();
     THttpHeader(const THttpHeader &other);
@@ -24,8 +21,7 @@ protected:
 };
 
 
-class T_CORE_EXPORT THttpRequestHeader : public THttpHeader
-{
+class T_CORE_EXPORT THttpRequestHeader : public THttpHeader {
 public:
     THttpRequestHeader();
     THttpRequestHeader(const THttpRequestHeader &other);
@@ -45,8 +41,7 @@ private:
 };
 
 
-class T_CORE_EXPORT THttpResponseHeader : public THttpHeader
-{
+class T_CORE_EXPORT THttpResponseHeader : public THttpHeader {
 public:
     THttpResponseHeader();
     THttpResponseHeader(const THttpResponseHeader &other);
@@ -62,4 +57,3 @@ private:
     QByteArray _reasonPhrase;
 };
 
-#endif // THTTPHEADER_H

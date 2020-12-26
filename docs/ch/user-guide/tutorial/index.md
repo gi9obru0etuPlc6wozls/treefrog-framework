@@ -129,7 +129,8 @@ Available tables:
 QSqlDatabase: QMYSQL driver not loaded
 ```
 
-如果收到这条信息,从[下载页面](http://www.treefrogframework.org/download){:target="_blank"}下载SQL驱动, 并安装它.
+如果收到此消息，则可能未安装Qt SQL驱动程序. 安装RDBM的驱动程序.
+
 可以通过下面的命令检查哪些SQL驱动已经安装;
 
 ```
@@ -213,7 +214,7 @@ $ qmake -r "CONFIG+=debug"
 一个WARNING信息将会显示,不过事实上没有影响. 接下来, 执行make命令来编译控制器(controller), 模型(model), 视图(view)和工具助手(helper).
 
 ```
-$ make     (MinGW 执行'mingw32-make'命令代替'make', MSVC 执行'nmake' 命令代替'make')
+$ make     (MSVC 执行'nmake' 命令代替'make')
 ```
 
 如果构建成功, 4个共享库(controller, model, view, helper)将出现在lib文件夹. 默认情况下,这些生成的库的debug模式的, 不过, 你可以重新生成Makefile文件, 使用下面的命令来生成release模式的库.
@@ -277,6 +278,17 @@ $ treefrog- k restart
 ```
 
 如果有防火墙, 确保使用的端口是允许的(默认的端口号是8800).
+
+作为参考，以下命令显示了当前的URL路由信息.
+```
+ $ treefrog --show-routes
+ Available controllers:
+   match   /blog/index  ->  blogcontroller.index()
+   match   /blog/show/:param  ->  blogcontroller.show(id)
+   match   /blog/create  ->  blogcontroller.create()
+   match   /blog/save/:param  ->  blogcontroller.save(id)
+   match   /blog/remove/:param  ->  blogcontroller.remove(id)
+```
 
 ## 浏览器访问
 

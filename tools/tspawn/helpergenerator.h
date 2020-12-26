@@ -1,11 +1,8 @@
-#ifndef HELPERGENERATOR_H
-#define HELPERGENERATOR_H
-
+#pragma once
 #include <QtCore>
 
 
-class HelperGenerator
-{
+class HelperGenerator {
 public:
     HelperGenerator(const QString &name);
     bool generate(const QString &dst) const;
@@ -14,4 +11,3 @@ private:
     QString name;
 };
 
-#endif // HELPERGENERATOR_H

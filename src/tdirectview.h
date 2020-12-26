@@ -1,14 +1,12 @@
-#ifndef TDIRECTVIEW_H
-#define TDIRECTVIEW_H
-
+#pragma once
 #include <TActionView>
 #include <TSession>
 
 
-class T_CORE_EXPORT TDirectView : public TActionView
-{
+class T_CORE_EXPORT TDirectView : public TActionView {
 public:
-    TDirectView() : TActionView() { }
+    TDirectView() :
+        TActionView() { }
     virtual ~TDirectView() { }
 
 protected:
@@ -16,10 +14,9 @@ protected:
     TSession &session();
     bool addCookie(const TCookie &cookie);
     bool addCookie(const QByteArray &name, const QByteArray &value, const QDateTime &expire = QDateTime(), const QString &path = QString(), const QString &domain = QString(), bool secure = false, bool httpOnly = false);
-    
+
 private:
     T_DISABLE_COPY(TDirectView)
     T_DISABLE_MOVE(TDirectView)
 };
 
-#endif // TDIRECTVIEW_H

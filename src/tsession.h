@@ -1,13 +1,10 @@
-#ifndef TSESSION_H
-#define TSESSION_H
-
-#include <QVariant>
+#pragma once
 #include <QByteArray>
+#include <QVariant>
 #include <TGlobal>
 
 
-class T_CORE_EXPORT TSession : public QVariantMap
-{
+class T_CORE_EXPORT TSession : public QVariantMap {
 public:
     TSession(const QByteArray &id = QByteArray());
     TSession(const TSession &other);
@@ -25,19 +22,21 @@ public:
 private:
     QByteArray sessionId;
 
-    void clear(); // disabled
+    void clear();  // disabled
     friend class TSessionCookieStore;
     friend class TActionContext;
 };
 
 
-inline TSession::TSession(const QByteArray &id)
-    : sessionId(id)
-{ }
+inline TSession::TSession(const QByteArray &id) :
+    sessionId(id)
+{
+}
 
-inline TSession::TSession(const TSession &other)
-    : QVariantMap(*static_cast<const QVariantMap *>(&other)), sessionId(other.sessionId)
-{ }
+inline TSession::TSession(const TSession &other) :
+    QVariantMap(*static_cast<const QVariantMap *>(&other)), sessionId(other.sessionId)
+{
+}
 
 inline TSession &TSession::operator=(const TSession &other)
 {
@@ -71,4 +70,3 @@ inline const QVariant TSession::value(const QString &key, const QVariant &defaul
     return QVariantMap::value(key, defaultValue);
 }
 
-#endif // TSESSION_H

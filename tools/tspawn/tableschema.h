@@ -1,15 +1,12 @@
-#ifndef TABLESCHEMA_H
-#define TABLESCHEMA_H
-
-#include <QString>
+#pragma once
 #include <QList>
 #include <QPair>
 #include <QSqlRecord>
+#include <QString>
 #include <QVariant>
 
 
-class TableSchema
-{
+class TableSchema {
 public:
     TableSchema(const QString &table, const QString &env = "dev");
     bool exists() const;
@@ -36,4 +33,3 @@ private:
     QSqlRecord tableFields;
 };
 
-#endif // TABLESCHEMA_H

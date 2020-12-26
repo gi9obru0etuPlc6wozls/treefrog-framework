@@ -5,12 +5,12 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
+#include "mongocommand.h"
 #include <QFile>
 #include <QSettings>
 #include <QVariant>
-#include <TMongoDriver>
 #include <TMongoCursor>
-#include "mongocommand.h"
+#include <TMongoDriver>
 
 static QSettings *mongoSettings = nullptr;
 
@@ -40,21 +40,21 @@ MongoCommand::~MongoCommand()
 bool MongoCommand::open(const QString &env)
 {
     databaseName = mongoSettings->value(env + "/DatabaseName").toString().trimmed();
-    printf("DatabaseName: %s\n", qPrintable(databaseName));
+    std::printf("DatabaseName: %s\n", qPrintable(databaseName));
 
-    QString host = mongoSettings->value(env +"/HostName").toString().trimmed();
-    printf("HostName:     %s\n", qPrintable(host));
+    QString host = mongoSettings->value(env + "/HostName").toString().trimmed();
+    std::printf("HostName:     %s\n", qPrintable(host));
 
-    int port = mongoSettings->value(env +"/Port").toInt();
-    QString user = mongoSettings->value(env +"/UserName").toString().trimmed();
-    QString pass = mongoSettings->value(env +"/Password").toString().trimmed();
-    QString opts = mongoSettings->value(env +"/ConnectOptions").toString().trimmed();
+    int port = mongoSettings->value(env + "/Port").toInt();
+    QString user = mongoSettings->value(env + "/UserName").toString().trimmed();
+    QString pass = mongoSettings->value(env + "/Password").toString().trimmed();
+    QString opts = mongoSettings->value(env + "/ConnectOptions").toString().trimmed();
 
     bool status = driver->open(databaseName, user, pass, host, port, opts);
     if (!status) {
-        fprintf(stderr, "MongoDB open error\n");
+        std::fprintf(stderr, "MongoDB open error\n");
     } else {
-        printf("MongoDB opened successfully\n");
+        std::printf("MongoDB opened successfully\n");
     }
     return status;
 }
@@ -68,23 +68,5 @@ void MongoCommand::close()
 
 QStringList MongoCommand::getCollectionNames() const
 {
-    QStringList ret;
-    if (!driver->isOpen()) {
-        return ret;
-    }
-
-    bool ok = driver->find("system.namespaces", QVariantMap(), QVariantMap(), QStringList(), 0, 0, 0);
-    if (ok) {
-        while (driver->cursor().next()) {
-            QVariantMap val = driver->cursor().value();
-            QString coll = val["name"].toString().mid(databaseName.length() + 1);
-
-            if (!coll.contains('$')) {
-                ret.prepend(coll);
-            }
-        }
-    }
-
-    std::sort(ret.begin(), ret.end());
-    return ret;
+    return (driver->isOpen()) ? driver->getCollectionNames() : QStringList();
 }

@@ -1,23 +1,29 @@
-#ifndef TSQLQUERYORMAPPERITERATOR_H
-#define TSQLQUERYORMAPPERITERATOR_H
-
+#pragma once
 #include <TSqlQueryORMapper>
 
 
 template <class T>
-class TSqlQueryORMapperIterator
-{
+class TSqlQueryORMapperIterator {
 public:
-    TSqlQueryORMapperIterator(TSqlQueryORMapper<T> &mapper) : m(&mapper), it(0) { }
+    TSqlQueryORMapperIterator(TSqlQueryORMapper<T> &mapper) :
+        m(&mapper), it(0) { }
 
     bool hasNext() const { return (it >= 0 && it < m->size()); }
     bool hasPrevious() const { return (it > 0 && it <= m->size()); }
     T next();
     T previous();
-    void toBack() { m->last(); it = m->size(); }
-    void toFront() { m->first(); it = 0; }
+    void toBack()
+    {
+        m->last();
+        it = m->size();
+    }
+    void toFront()
+    {
+        m->first();
+        it = 0;
+    }
     T value() const { return m->value(); }
-        
+
 private:
     TSqlQueryORMapperIterator(const TSqlQueryORMapperIterator<T> &);
     TSqlQueryORMapperIterator<T> &operator=(const TSqlQueryORMapperIterator<T> &);
@@ -52,4 +58,3 @@ inline T TSqlQueryORMapperIterator<T>::previous()
     return m->value();
 }
 
-#endif // TSQLQUERYORMAPPERITERATOR_H

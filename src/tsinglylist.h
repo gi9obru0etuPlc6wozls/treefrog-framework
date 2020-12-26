@@ -1,14 +1,12 @@
-#ifndef TSINGLYLIST_H
-#define TSINGLYLIST_H
-
-#include "thazardptr.h"
+#pragma once
 #include "thazardobject.h"
+#include "thazardptr.h"
 
 
-template <class T> class TSinglyList
-{
+template <class T>
+class TSinglyList {
 public:
-    TSinglyList() {}
+    TSinglyList() { }
 
     const T value(const QString &key, const T &defaultValue = T());
     void insert(const QString &key, const T &value);
@@ -16,13 +14,13 @@ public:
     T take(const QString &key);
 
 private:
-    struct Node : public THazardObject
-    {
+    struct Node : public THazardObject {
         QString key;
         T value;
         TAtomicPtr<Node> next {nullptr};
 
-        Node(const QString &k, const T &v) : key(k), value(v) { }
+        Node(const QString &k, const T &v) :
+            key(k), value(v) { }
     };
 
     TAtomicPtr<Node> head {nullptr};
@@ -47,7 +45,7 @@ inline const T TSinglyList<T>::value(const QString &key, const T &defaultValue)
         while (mark) {
             ptr = hzptr.guard<Node>(ptr->next, &mark);
         }
-        ???
+        ? ? ?
     }
 
     while (ptr) {
@@ -92,4 +90,3 @@ inline T TSinglyList<T>::take(const QString &key)
     return T();
 }
 
-#endif // TSINGLYLIST_H

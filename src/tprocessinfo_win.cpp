@@ -6,11 +6,11 @@
  */
 
 #include "tprocessinfo.h"
-#include <TWebApplication>
 #include <QtCore>
-#include <windows.h>
-#include <tlhelp32.h>
+#include <TWebApplication>
+#include <Windows.h>
 #include <psapi.h>
+#include <tlhelp32.h>
 
 
 bool TProcessInfo::exists() const
@@ -52,7 +52,7 @@ qint64 TProcessInfo::ppid() const
 //     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId);
 //     if (hProcess) {
 //         PROCESS_BASIC_INFORMATION basicInfo;
-//         if (NtQueryInformationProcess(hProcess, ProcessBasicInformation, &basicInfo, sizeof(basicInfo), NULL) == STATUS_SUCCESS) {
+//         if (NtQueryInformationProcess(hProcess, ProcessBasicInformation, &basicInfo, sizeof(basicInfo), nullptr) == STATUS_SUCCESS) {
 //             ppid = (qint64)basicInfo.InheritedFromUniqueProcessId;
 //         }
 //     }
@@ -66,9 +66,9 @@ QString TProcessInfo::processName() const
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId);
     if (hProcess) {
         WCHAR fileName[512];
-        DWORD len = GetModuleFileNameEx(hProcess, NULL, (LPWSTR)fileName, 512);
+        DWORD len = GetModuleFileNameEx(hProcess, nullptr, (LPWSTR)fileName, 512);
         if (len > 0) {
-            QString path = QString::fromUtf16((ushort*)fileName);
+            QString path = QString::fromUtf16((ushort *)fileName);
             ret = QFileInfo(path).baseName();
         }
         CloseHandle(hProcess);
@@ -90,7 +90,7 @@ void TProcessInfo::kill()
 {
     if (processId > 0) {
         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)processId);
-        if (hProcess){
+        if (hProcess) {
             TerminateProcess(hProcess, 0);
             WaitForSingleObject(hProcess, 500);
             CloseHandle(hProcess);
@@ -119,7 +119,7 @@ QList<qint64> TProcessInfo::allConcurrentPids()
     if (Process32First(hSnapshot, &entry)) {
         do {
             ret << (qint64)entry.th32ProcessID;
-        } while(Process32Next(hSnapshot, &entry));
+        } while (Process32Next(hSnapshot, &entry));
     }
     CloseHandle(hSnapshot);
 

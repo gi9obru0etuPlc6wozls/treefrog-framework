@@ -27,15 +27,15 @@ In the case of Windows :
 ```
  > configure --enable-debug --enable-gui-mod
  > cd src
- > mingw32-make install
+ > nmake install
  > cd ..\tools
- > mingw32-make install
+ > nmake install
  > cd ..
  > configure --enable-gui-mod
  > cd src
- > mingw32-make install
+ > nmake install
  > cd ..\tools
- > mingw32-make install
+ > nmake install
 ```
 
 Next, this setting is also required for the Web application side. Edit the project file (.pro), add "gui" in the variable with the name *QT*.
@@ -59,7 +59,7 @@ img.save("qvga.jpg");
 
 - In reality, use the absolute path as a the file path.
 
-Using this QImage class, you can convert while ignoring aspect ratio. Also you can convert to a different image format. Please see [Qt Document](http://qt-project.org/doc/qt-4.8/){:target="_blank"} for detail.
+Using this QImage class, you can convert while ignoring aspect ratio. Also you can convert to a different image format. Please see [Qt Document](https://doc.qt.io/qt-5/){:target="_blank"} for detail.
 
 ## Rotation of the Image
 

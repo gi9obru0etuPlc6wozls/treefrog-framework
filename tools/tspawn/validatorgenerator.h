@@ -1,11 +1,8 @@
-#ifndef VALIDATORGENERATOR_H
-#define VALIDATORGENERATOR_H
-
+#pragma once
 #include <QtCore>
 
 
-class ValidatorGenerator
-{
+class ValidatorGenerator {
 public:
     ValidatorGenerator(const QString &validator);
     bool generate(const QString &dst) const;
@@ -13,6 +10,4 @@ public:
 private:
     QString name;
 };
-
-#endif // VALIDATORGENERATOR_H
 

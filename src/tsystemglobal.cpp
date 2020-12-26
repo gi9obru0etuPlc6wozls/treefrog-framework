@@ -8,40 +8,40 @@
 #include "tsystemglobal.h"
 #include "taccesslogstream.h"
 #include "tfileaiowriter.h"
-#include <TWebApplication>
-#include <TAppSettings>
-#include <TLogger>
-#include <TLog>
-#include <TAccessLog>
-#include <QString>
 #include <QByteArray>
 #include <QDateTime>
-#include <QFile>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QSqlError>
+#include <QString>
+#include <TAccessLog>
+#include <TAppSettings>
+#include <TLog>
+#include <TLogger>
+#include <TWebApplication>
 
-constexpr auto DEFAULT_SYSTEMLOG_LAYOUT          = "%d %5P %m%n";
+constexpr auto DEFAULT_SYSTEMLOG_LAYOUT = "%d %5P %m%n";
 constexpr auto DEFAULT_SYSTEMLOG_DATETIME_FORMAT = "yyyy-MM-ddThh:mm:ss";
-constexpr auto DEFAULT_ACCESSLOG_LAYOUT          = "%h %d \"%r\" %s %O%n";
+constexpr auto DEFAULT_ACCESSLOG_LAYOUT = "%h %d \"%r\" %s %O%n";
 constexpr auto DEFAULT_ACCESSLOG_DATETIME_FORMAT = "yyyy-MM-ddThh:mm:ss";
 
 namespace {
-    TAccessLogStream *accesslogstrm = nullptr;
-    TAccessLogStream *sqllogstrm = nullptr;
-    TFileAioWriter systemLog;
-    QByteArray syslogLayout = DEFAULT_SYSTEMLOG_LAYOUT;
-    QByteArray syslogDateTimeFormat = DEFAULT_SYSTEMLOG_DATETIME_FORMAT;
-    QByteArray accessLogLayout = DEFAULT_ACCESSLOG_LAYOUT;
-    QByteArray accessLogDateTimeFormat;
+TAccessLogStream *accesslogstrm = nullptr;
+TAccessLogStream *sqllogstrm = nullptr;
+TFileAioWriter systemLog;
+QByteArray syslogLayout = DEFAULT_SYSTEMLOG_LAYOUT;
+QByteArray syslogDateTimeFormat = DEFAULT_SYSTEMLOG_DATETIME_FORMAT;
+QByteArray accessLogLayout = DEFAULT_ACCESSLOG_LAYOUT;
+QByteArray accessLogDateTimeFormat;
 
 
-    void tSystemMessage(int priority, const char *msg, va_list ap)
-    {
-        TLog log(priority, QString().vsprintf(msg, ap).toLocal8Bit());
-        QByteArray buf = TLogger::logToByteArray(log, syslogLayout, syslogDateTimeFormat);
-        systemLog.write(buf.data(), buf.length());
-    }
+void tSystemMessage(int priority, const char *msg, va_list ap)
+{
+    TLog log(priority, QString().vsprintf(msg, ap).toLocal8Bit());
+    QByteArray buf = TLogger::logToByteArray(log, syslogLayout, syslogDateTimeFormat);
+    systemLog.write(buf.data(), buf.length());
+}
 }
 
 
@@ -93,6 +93,12 @@ void Tf::releaseAccessLogger()
 {
     delete accesslogstrm;
     accesslogstrm = nullptr;
+}
+
+
+bool Tf::isAccessLoggerAvailable()
+{
+    return (bool)accesslogstrm;
 }
 
 
@@ -160,7 +166,9 @@ void tSystemTrace(const char *msg, ...)
 
 #else
 
-void tSystemDebug(const char *, ...) { }
+void tSystemDebug(const char *, ...)
+{
+}
 void tSystemTrace(const char *, ...) { }
 
 #endif
@@ -181,16 +189,18 @@ void Tf::traceQueryLog(const char *msg, ...)
 
 void Tf::writeQueryLog(const QString &query, bool success, const QSqlError &error)
 {
-    QString q = query;
+    if (sqllogstrm) {
+        QString q = query;
 
-    if (!success) {
-        QString err = (!error.databaseText().isEmpty()) ? error.databaseText() : error.text().trimmed();
-        if (!err.isEmpty()) {
-            err = QLatin1Char('[') + err + QLatin1String("] ");
+        if (!success) {
+            QString err = (!error.databaseText().isEmpty()) ? error.databaseText() : error.text().trimmed();
+            if (!err.isEmpty()) {
+                err = QLatin1Char('[') + err + QLatin1String("] ");
+            }
+            q = QLatin1String("(Query failed) ") + err + query;
         }
-        q = QLatin1String("(Query failed) ") + err + query;
+        Tf::traceQueryLog("%s", qPrintable(q));
     }
-    Tf::traceQueryLog("%s", qPrintable(q));
 }
 
 
@@ -201,13 +211,13 @@ QMap<QString, QVariant> Tf::settingsToMap(QSettings &settings, const QString &en
 
     QMap<QString, QVariant> map;
 
-    if (! env.isEmpty()) {
+    if (!env.isEmpty()) {
         settings.beginGroup(env);
     }
     for (auto &k : settings.allKeys()) {
         map.insert(k, settings.value(k));
     }
-    if (! env.isEmpty()) {
+    if (!env.isEmpty()) {
         settings.endGroup();
     }
     return map;

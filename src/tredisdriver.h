@@ -1,23 +1,20 @@
-#ifndef TREDISDRIVER_H
-#define TREDISDRIVER_H
-
-#include <TGlobal>
-#include <TKvsDriver>
+#pragma once
 #include <QString>
 #include <QVariant>
 #include <QtGlobal>
+#include <TGlobal>
+#include <TKvsDriver>
 
 class QTcpSocket;
 
 
-class T_CORE_EXPORT TRedisDriver : public TKvsDriver
-{
+class T_CORE_EXPORT TRedisDriver : public TKvsDriver {
 public:
     TRedisDriver();
     ~TRedisDriver();
 
     QString key() const override { return "REDIS"; }
-    bool open(const QString &db, const QString &user = QString(), const QString &password = QString(), const QString &host = QString(), quint16 port = 0, const QString & options = QString()) override;
+    bool open(const QString &db, const QString &user = QString(), const QString &password = QString(), const QString &host = QString(), quint16 port = 0, const QString &options = QString()) override;
     void close() override;
     bool command(const QString &cmd) override;
     bool isOpen() const override;
@@ -27,10 +24,10 @@ public:
 protected:
     enum DataType {
         SimpleString = '+',
-        Error        = '-',
-        Integer      = ':',
-        BulkString   = '$',
-        Array        = '*',
+        Error = '-',
+        Integer = ':',
+        BulkString = '$',
+        Array = '*',
     };
 
     bool writeCommand(const QByteArray &command);
@@ -59,4 +56,3 @@ private:
     T_DISABLE_MOVE(TRedisDriver)
 };
 
-#endif // TREDISDRIVER_H

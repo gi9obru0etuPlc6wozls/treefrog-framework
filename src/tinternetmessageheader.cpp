@@ -5,9 +5,9 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TInternetMessageHeader>
-#include "tsystemglobal.h"
 #include "thttputility.h"
+#include "tsystemglobal.h"
+#include <TInternetMessageHeader>
 using namespace Tf;
 
 /*!
@@ -24,8 +24,9 @@ using namespace Tf;
   Copy constructor.
 */
 TInternetMessageHeader::TInternetMessageHeader(const TInternetMessageHeader &other) :
-    headerPairList(other.headerPairList)
-{ }
+    _headerPairList(other._headerPairList)
+{
+}
 
 /*!
   Constructs an Internet message header by parsing \a str.
@@ -50,7 +51,7 @@ bool TInternetMessageHeader::hasRawHeader(const QByteArray &key) const
 */
 QByteArray TInternetMessageHeader::rawHeader(const QByteArray &key) const
 {
-    for (const auto &p : headerPairList) {
+    for (const auto &p : _headerPairList) {
         if (qstricmp(p.first.constData(), key.constData()) == 0) {
             return p.second;
         }
@@ -64,7 +65,8 @@ QByteArray TInternetMessageHeader::rawHeader(const QByteArray &key) const
 QByteArrayList TInternetMessageHeader::rawHeaderList() const
 {
     QByteArrayList list;
-    for (const auto &p : headerPairList) {
+    list.reserve(_headerPairList.size());
+    for (const auto &p : _headerPairList) {
         list << p.first;
     }
     return list;
@@ -77,12 +79,12 @@ QByteArrayList TInternetMessageHeader::rawHeaderList() const
 void TInternetMessageHeader::setRawHeader(const QByteArray &key, const QByteArray &value)
 {
     if (!hasRawHeader(key)) {
-        headerPairList << RawHeaderPair(key, value);
+        _headerPairList << RawHeaderPair(key, value);
         return;
     }
 
     QByteArray val = value;
-    for (QMutableListIterator<RawHeaderPair> it(headerPairList); it.hasNext(); ) {
+    for (QMutableListIterator<RawHeaderPair> it(_headerPairList); it.hasNext();) {
         RawHeaderPair &p = it.next();
         if (qstricmp(p.first.constData(), key.constData()) == 0) {
             if (val.isNull()) {
@@ -104,7 +106,7 @@ void TInternetMessageHeader::addRawHeader(const QByteArray &key, const QByteArra
     if (key.isEmpty() || value.isNull())
         return;
 
-    headerPairList << RawHeaderPair(key, value);
+    _headerPairList << RawHeaderPair(key, value);
 }
 
 /*!
@@ -112,7 +114,7 @@ void TInternetMessageHeader::addRawHeader(const QByteArray &key, const QByteArra
 */
 QByteArray TInternetMessageHeader::contentType() const
 {
-    return rawHeader("Content-Type");
+    return rawHeader(QByteArrayLiteral("Content-Type"));
 }
 
 /*!
@@ -120,7 +122,7 @@ QByteArray TInternetMessageHeader::contentType() const
 */
 void TInternetMessageHeader::setContentType(const QByteArray &type)
 {
-    setRawHeader("Content-Type", type);
+    setRawHeader(QByteArrayLiteral("Content-Type"), type);
 }
 
 /*!
@@ -128,7 +130,10 @@ void TInternetMessageHeader::setContentType(const QByteArray &type)
 */
 qint64 TInternetMessageHeader::contentLength() const
 {
-    return rawHeader("Content-Length").toLongLong();
+    if (_contentLength < 0) {
+        _contentLength = rawHeader(QByteArrayLiteral("Content-Length")).toLongLong();
+    }
+    return _contentLength;
 }
 
 /*!
@@ -136,7 +141,8 @@ qint64 TInternetMessageHeader::contentLength() const
 */
 void TInternetMessageHeader::setContentLength(qint64 len)
 {
-    setRawHeader("Content-Length", QByteArray::number(len));
+    setRawHeader(QByteArrayLiteral("Content-Length"), QByteArray::number(len));
+    _contentLength = len;
 }
 
 /*!
@@ -144,7 +150,7 @@ void TInternetMessageHeader::setContentLength(qint64 len)
 */
 QByteArray TInternetMessageHeader::date() const
 {
-    return rawHeader("Date");
+    return rawHeader(QByteArrayLiteral("Date"));
 }
 
 /*!
@@ -152,7 +158,7 @@ QByteArray TInternetMessageHeader::date() const
 */
 void TInternetMessageHeader::setDate(const QByteArray &date)
 {
-    setRawHeader("Date", date);
+    setRawHeader(QByteArrayLiteral("Date"), date);
 }
 
 /*!
@@ -169,7 +175,7 @@ void TInternetMessageHeader::setCurrentDate()
 */
 void TInternetMessageHeader::setDate(const QDateTime &dateTime)
 {
-    setRawHeader("Date", THttpUtility::toHttpDateTimeString(dateTime));
+    setRawHeader(QByteArrayLiteral("Date"), THttpUtility::toHttpDateTimeString(dateTime));
 }
 
 /*!
@@ -187,7 +193,8 @@ void TInternetMessageHeader::setDate(const QDateTime &dateTime)
 QByteArray TInternetMessageHeader::toByteArray() const
 {
     QByteArray res;
-    for (const auto &p : headerPairList) {
+    res.reserve(_headerPairList.size() * 64);
+    for (const auto &p : _headerPairList) {
         res += p.first;
         res += ": ";
         res += p.second;
@@ -214,7 +221,7 @@ void TInternetMessageHeader::parse(const QByteArray &header)
         headerlen = header.length();
 
     while (i < headerlen) {
-        int j = header.indexOf(':', i); // field-name
+        int j = header.indexOf(':', i);  // field-name
         if (j < 0)
             break;
 
@@ -236,7 +243,7 @@ void TInternetMessageHeader::parse(const QByteArray &header)
             j = ++i;
         } while (i < headerlen && (header.at(i) == ' ' || header.at(i) == '\t'));
 
-        headerPairList << qMakePair(field, value);
+        _headerPairList << qMakePair(field, value);
     }
 }
 
@@ -245,7 +252,7 @@ void TInternetMessageHeader::parse(const QByteArray &header)
 */
 void TInternetMessageHeader::removeAllRawHeaders(const QByteArray &key)
 {
-    for (QMutableListIterator<RawHeaderPair> it(headerPairList); it.hasNext(); ) {
+    for (QMutableListIterator<RawHeaderPair> it(_headerPairList); it.hasNext();) {
         RawHeaderPair &p = it.next();
         if (qstricmp(p.first.constData(), key.constData()) == 0) {
             it.remove();
@@ -258,7 +265,7 @@ void TInternetMessageHeader::removeAllRawHeaders(const QByteArray &key)
 */
 void TInternetMessageHeader::removeRawHeader(const QByteArray &key)
 {
-    for (QMutableListIterator<RawHeaderPair> it(headerPairList); it.hasNext(); ) {
+    for (QMutableListIterator<RawHeaderPair> it(_headerPairList); it.hasNext();) {
         RawHeaderPair &p = it.next();
         if (qstricmp(p.first.constData(), key.constData()) == 0) {
             it.remove();
@@ -273,7 +280,7 @@ void TInternetMessageHeader::removeRawHeader(const QByteArray &key)
  */
 bool TInternetMessageHeader::isEmpty() const
 {
-    return headerPairList.isEmpty();
+    return _headerPairList.isEmpty();
 }
 
 /*!
@@ -281,7 +288,7 @@ bool TInternetMessageHeader::isEmpty() const
 */
 void TInternetMessageHeader::clear()
 {
-    headerPairList.clear();
+    _headerPairList.clear();
 }
 
 /*!
@@ -290,6 +297,6 @@ void TInternetMessageHeader::clear()
 */
 TInternetMessageHeader &TInternetMessageHeader::operator=(const TInternetMessageHeader &other)
 {
-    headerPairList = other.headerPairList;
+    _headerPairList = other._headerPairList;
     return *this;
 }

@@ -5,10 +5,10 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
+#include <QDir>
+#include <TAppSettings>
 #include <TTemporaryFile>
 #include <TWebApplication>
-#include <TAppSettings>
-#include <QDir>
 
 /*!
   \class TTemporaryFile
@@ -29,7 +29,7 @@ TTemporaryFile::TTemporaryFile()
     if (Tf::app()) {
         tmppath = Tf::appSettings()->value(Tf::UploadTemporaryDirectory).toString().trimmed();
         if (!tmppath.isEmpty() && QDir::isRelativePath(tmppath)) {
-            tmppath = Tf::app()->webRootPath() + tmppath + QDir::separator();
+            tmppath = Tf::app()->webRootPath() + tmppath + "/";
         }
 
         if (!QDir(tmppath).exists()) {
@@ -41,8 +41,8 @@ TTemporaryFile::TTemporaryFile()
         tmppath = QDir::tempPath();
     }
 
-    if (!tmppath.endsWith(QDir::separator())) {
-        tmppath += QDir::separator();
+    if (!tmppath.endsWith("/")) {
+        tmppath += "/";
     }
     setFileTemplate(tmppath + QLatin1String("tf_temp.XXXXXXXXXXXXXXXX"));
 }

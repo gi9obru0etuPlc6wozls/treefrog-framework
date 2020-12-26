@@ -1,23 +1,20 @@
-#ifndef THTTPREQUEST_H
-#define THTTPREQUEST_H
-
+#pragma once
 #include <QByteArray>
-#include <QVariant>
+#include <QHostAddress>
+#include <QJsonDocument>
 #include <QList>
 #include <QPair>
-#include <QHostAddress>
 #include <QSharedData>
-#include <TGlobal>
-#include <TMultipartFormData>
+#include <QVariant>
 #include <TCookieJar>
+#include <TGlobal>
 #include <THttpRequestHeader>
-#include <QJsonDocument>
+#include <TMultipartFormData>
 
 class QIODevice;
 
 
-class T_CORE_EXPORT THttpRequestData : public QSharedData
-{
+class T_CORE_EXPORT THttpRequestData : public QSharedData {
 public:
     THttpRequestData() { }
     THttpRequestData(const THttpRequestData &other);
@@ -33,8 +30,7 @@ public:
 };
 
 
-class T_CORE_EXPORT THttpRequest
-{
+class T_CORE_EXPORT THttpRequest {
 public:
     THttpRequest();
     THttpRequest(const THttpRequest &other);
@@ -73,11 +69,13 @@ public:
     QByteArray cookie(const QString &name) const;
     QList<TCookie> cookies() const;
     QHostAddress clientAddress() const { return d->clientAddress; }
+    QHostAddress originatingClientAddress() const;
     QIODevice *rawBody();
     bool hasJson() const { return !d->jsonData.isNull(); }
     const QJsonDocument &jsonData() const { return d->jsonData; }
 
-    static QList<THttpRequest> generate(const QByteArray &byteArray, const QHostAddress &address);
+    static QList<THttpRequest> generate(QByteArray &byteArray, const QHostAddress &address);
+    static QList<QPair<QString, QString>> fromQuery(const QString &query);
 
 protected:
     QByteArray boundary() const;
@@ -99,4 +97,3 @@ private:
 
 Q_DECLARE_METATYPE(THttpRequest)
 
-#endif // THTTPREQUEST_H

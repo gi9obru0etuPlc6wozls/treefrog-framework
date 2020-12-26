@@ -1,6 +1,4 @@
-#ifndef TMAILMESSAGE_H
-#define TMAILMESSAGE_H
-
+#pragma once
 #include <QString>
 #include <TGlobal>
 #include <TInternetMessageHeader>
@@ -8,8 +6,7 @@
 class QTextCodec;
 
 
-class T_CORE_EXPORT TMailMessage : public TInternetMessageHeader
-{
+class T_CORE_EXPORT TMailMessage : public TInternetMessageHeader {
 public:
     TMailMessage(const QByteArray &encoding = "UTF-8");
     TMailMessage(const char *encoding);
@@ -48,4 +45,3 @@ private:
     QByteArrayList recipientList;
 };
 
-#endif // TMAILMESSAGE_H

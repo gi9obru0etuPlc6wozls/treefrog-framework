@@ -1,16 +1,13 @@
-#ifndef MONGOOBJGENERATOR_H
-#define MONGOOBJGENERATOR_H
-
-#include <QString>
+#pragma once
+#include "abstractobjgenerator.h"
 #include <QDir>
 #include <QList>
 #include <QPair>
+#include <QString>
 #include <QVariant>
-#include "abstractobjgenerator.h"
 
 
-class MongoObjGenerator : public AbstractObjGenerator
-{
+class MongoObjGenerator : public AbstractObjGenerator {
 public:
     MongoObjGenerator(const QString &model);
 
@@ -32,4 +29,3 @@ private:
     QList<QPair<QString, QVariant::Type>> fields;
 };
 
-#endif // MONGOOBJGENERATOR_H

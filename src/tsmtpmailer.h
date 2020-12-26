@@ -1,17 +1,14 @@
-#ifndef TSMTPMAILER_H
-#define TSMTPMAILER_H
-
-#include <QObject>
-#include <QMutex>
-#include <QStringList>
+#pragma once
 #include <QByteArray>
+#include <QMutex>
+#include <QObject>
+#include <QStringList>
 #include <TMailMessage>
 
 class QSslSocket;
 class TPopMailer;
 
-class T_CORE_EXPORT TSmtpMailer : public QObject
-{
+class T_CORE_EXPORT TSmtpMailer : public QObject {
     Q_OBJECT
 public:
     enum AuthenticationType {
@@ -26,12 +23,12 @@ public:
     ~TSmtpMailer();
 
     QString key() const { return "smtp"; }
-    QString hostName() const { return smtpHostName; }
+    QString hostName() const { return _smtpHostName; }
     void setHostName(const QString &hostName);
-    quint16 port() const { return smtpPort; }
+    quint16 port() const { return _smtpPort; }
     void setPort(quint16 port);
     void setAuthenticationEnabled(bool enable);
-    void setStartTlsEnabled(bool enable);
+    void setTlsRequired(bool require);
     void setPopBeforeSmtpAuthEnabled(const QString &popServer, quint16 port, bool apop, bool enable);
     void setUserName(const QByteArray &username);
     void setPassword(const QByteArray &password);
@@ -59,51 +56,62 @@ protected:
     bool cmdData(const QByteArray &message);
     bool cmdQuit();
 
-    int  cmd(const QByteArray &command, QByteArrayList *reply = nullptr);
-    int  read(QByteArrayList *reply = nullptr);
+    int cmd(const QByteArray &command, QByteArrayList *reply = nullptr);
+    int read(QByteArrayList *reply = nullptr);
     bool write(const QByteArray &command);
 
 private:
     T_DISABLE_COPY(TSmtpMailer)
     T_DISABLE_MOVE(TSmtpMailer)
 
-    QSslSocket *socket {nullptr};
-    QMutex sendMutex;
-    QString smtpHostName;
-    quint16 smtpPort {0};
-    TMailMessage mailMessage;
-    QStringList  svrAuthMethods;
-    bool authEnable {false};
-    bool tlsEnable {false};
-    bool tlsAvailable {false};
-    QByteArray userName;
-    QByteArray password;
-    TPopMailer *pop {nullptr};
-    QByteArray lastResponse;
+    QSslSocket *_socket {nullptr};
+    QMutex _sendMutex;
+    QString _smtpHostName;
+    quint16 _smtpPort {0};
+    TMailMessage _mailMessage;
+    QStringList _svrAuthMethods;
+    bool _authEnable {false};
+    bool _tlsRequire {false};
+    bool _tlsAvailable {false};
+    QByteArray _username;
+    QByteArray _password;
+    TPopMailer *_pop {nullptr};
+    QByteArray _lastResponse;
 };
 
 
 inline void TSmtpMailer::setAuthenticationEnabled(bool enable)
 {
-    authEnable = enable;
+    _authEnable = enable;
 }
 
 
-inline void TSmtpMailer::setStartTlsEnabled(bool enable)
+inline void TSmtpMailer::setTlsRequired(bool require)
 {
-    tlsEnable = enable;
+    _tlsRequire = require;
 }
 
 
 inline void TSmtpMailer::setUserName(const QByteArray &username)
 {
-    userName = username;
+    _username = username;
 }
 
 
 inline void TSmtpMailer::setPassword(const QByteArray &pass)
 {
-    password = pass;
+    _password = pass;
 }
 
-#endif // TSMTPMAILER_H
+
+inline void TSmtpMailer::setHostName(const QString &hostName)
+{
+    _smtpHostName = hostName;
+}
+
+
+inline void TSmtpMailer::setPort(quint16 port)
+{
+    _smtpPort = port;
+}
+

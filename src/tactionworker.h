@@ -1,6 +1,5 @@
-#ifndef TACTIONWORKER_H
-#define TACTIONWORKER_H
-
+#pragma once
+#include <QHostAddress>
 #include <QThread>
 #include <TActionContext>
 
@@ -10,11 +9,10 @@ class TEpollHttpSocket;
 class QIODevice;
 
 
-class T_CORE_EXPORT TActionWorker : public QObject, public TActionContext
-{
+class T_CORE_EXPORT TActionWorker : public QObject, public TActionContext {
     Q_OBJECT
 public:
-    virtual ~TActionWorker() {}
+    virtual ~TActionWorker() { }
     void start(TEpollHttpSocket *socket);
 
     static TActionWorker *instance();
@@ -26,14 +24,13 @@ protected:
     void closeHttpSocket() override;
 
 private:
-    TActionWorker() {}
+    TActionWorker() { }
 
-    QByteArray httpRequest;
-    QString clientAddr;
-    TEpollHttpSocket *socket {nullptr};
+    QByteArray _httpRequest;
+    QHostAddress _clientAddr;
+    TEpollHttpSocket *_socket {nullptr};
 
     T_DISABLE_COPY(TActionWorker)
     T_DISABLE_MOVE(TActionWorker)
 };
 
-#endif // TACTIONWORKER_H

@@ -1,10 +1,8 @@
-#ifndef TEPOLL_H
-#define TEPOLL_H
-
+#pragma once
+#include "tqueue.h"
 #include <QMap>
 #include <TGlobal>
 #include <sys/epoll.h>
-#include "tqueue.h"
 
 class QIODevice;
 class QByteArray;
@@ -15,8 +13,7 @@ class THttpRequestHeader;
 struct epoll_event;
 
 
-class T_CORE_EXPORT TEpoll
-{
+class T_CORE_EXPORT TEpoll {
 public:
     ~TEpoll();
 
@@ -53,7 +50,7 @@ private:
     volatile bool polling {false};
     int numEvents {0};
     int eventIterator {0};
-    QMap<TEpollSocket*, int> pollingSockets;
+    QMap<TEpollSocket *, int> pollingSockets;
     TQueue<TSendData *> sendRequests;
 
     TEpoll();
@@ -61,4 +58,3 @@ private:
     T_DISABLE_MOVE(TEpoll);
 };
 
-#endif // TEPOLL_H

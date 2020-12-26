@@ -5,72 +5,58 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <TActionController>
-#include <TWebApplication>
-#include <TAppSettings>
-#include <TDispatcher>
-#include <TActionView>
-#include <TSession>
-#include <TAbstractUser>
-#include <TActionContext>
-#include <TFormValidator>
-#include <TCache>
 #include "tsessionmanager.h"
 #include "ttextview.h"
+#include <QCryptographicHash>
 #include <QDir>
+#include <QDomDocument>
 #include <QFile>
-#include <QTextStream>
 #include <QMetaMethod>
 #include <QMetaType>
-#include <QTextCodec>
-#include <QCryptographicHash>
 #include <QMutexLocker>
-#include <QDomDocument>
+#include <QTextCodec>
+#include <QTextStream>
+#include <TAbstractUser>
+#include <TActionContext>
+#include <TActionController>
+#include <TActionView>
+#include <TAppSettings>
+#include <TCache>
+#include <TDispatcher>
+#include <TFormValidator>
+#include <TSession>
+#include <TWebApplication>
 
-const QString FLASH_VARS_SESSION_KEY ("_flashVariants");
-const QString LOGIN_USER_NAME_KEY ("_loginUserName");
+const QString FLASH_VARS_SESSION_KEY("_flashVariants");
+const QString LOGIN_USER_NAME_KEY("_loginUserName");
+const QByteArray DEFAULT_CONTENT_TYPE("text/html");
 
 /*!
   \class TActionController
-  \~english
   \brief The TActionController class is the base class of all action
   controllers.
-
-  \~japanese
-  \brief TActionControllerはアクションコントローラのベースとなるクラス
 */
 
 /*!
-  \~english
   \brief Constructor.
-
-  \~japanese
-  \brief コンストラクタ
  */
 TActionController::TActionController() :
     QObject(),
     TAbstractController()
 {
     // Default content type
-    setContentType(QByteArrayLiteral("text/html"));
+    setContentType(DEFAULT_CONTENT_TYPE);
 }
 
 /*!
-  \~english
   \brief Destructor.
-
-  \~japanese
-  \brief デストラクタ
 */
 TActionController::~TActionController()
-{ }
+{
+}
 
 /*!
-  \~english
   Returns the controller name.
-
-  \~japanese
-  コントローラ名を返す
 */
 QString TActionController::name() const
 {
@@ -87,29 +73,17 @@ QString TActionController::name() const
 
 /*!
   \fn QString TActionController::className() const
-  \~english
   Returns the class name.
-
-  \~japanese
-  クラス名を返す
 */
 
 /*!
   \fn QString TActionController::activeAction() const
-  \~english
   Returns the active action name.
-
-  \~japanese
-  アクティブなアクション名を返す
 */
 
 /*!
   \fn const THttpRequest &TActionController::httpRequest() const;
-  \~english
   Returns the HTTP request being executed.
-
-  \~japanese
-  HTTPリクエストへの参照を返す
 */
 const THttpRequest &TActionController::httpRequest() const
 {
@@ -118,11 +92,7 @@ const THttpRequest &TActionController::httpRequest() const
 
 /*!
   \fn THttpRequest &TActionController::httpRequest();
-  \~english
   Returns the HTTP request being executed.
-
-  \~japanese
-  HTTPリクエストへの参照を返す
 */
 THttpRequest &TActionController::httpRequest()
 {
@@ -131,29 +101,16 @@ THttpRequest &TActionController::httpRequest()
 
 /*!
   \fn const THttpResponse &TActionController::httpResponse() const;
-  \~english
   Returns a HTTP response to be sent.
-
-  \~japanese
-  送信するHTTPレスポンスへの参照を返す
 */
 
 /*!
   \fn THttpResponse &TActionController::httpResponse();
-  \~english
   Returns a HTTP response to be sent.
-
-  \~japanese
-  送信するHTTPレスポンスへの参照を返す
 */
 
 /*!
-  \~english
   Sets the layout template to \a layout.
-
-  \~japanese
-  レイアウトテンプレート\a layout を設定する
-  \~
   \sa layout()
  */
 void TActionController::setLayout(const QString &layout)
@@ -164,11 +121,7 @@ void TActionController::setLayout(const QString &layout)
 }
 
 /*!
-  \~english
   Adds the cookie to the internal list of cookies.
-
-  \~japanese
-  クッキーをHTTPレスポンスに追加する
  */
 bool TActionController::addCookie(const TCookie &cookie)
 {
@@ -180,21 +133,18 @@ bool TActionController::addCookie(const TCookie &cookie)
 
     cookieJar.addCookie(cookie);
     response.header().removeAllRawHeaders("Set-Cookie");
-    for (auto &ck : (const QList<TCookie>&)cookieJar.allCookies()) {
-        response.header().addRawHeader("Set-Cookie", ck.toRawForm());
+    for (auto &ck : (const QList<TCookie> &)cookieJar.allCookies()) {
+        response.header().addRawHeader("Set-Cookie", ck.toRawForm(QNetworkCookie::Full));
     }
     return true;
 }
 
 /*!
-  \~english
   Adds the cookie to the internal list of cookies.
-
-  \~japanese
-  クッキーをHTTPレスポンスに追加する
  */
 bool TActionController::addCookie(const QByteArray &name, const QByteArray &value, const QDateTime &expire,
-                                  const QString &path, const QString &domain, bool secure, bool httpOnly)
+    const QString &path, const QString &domain, bool secure, bool httpOnly,
+    const QByteArray &sameSite)
 {
     TCookie cookie(name, value);
     cookie.setExpirationDate(expire);
@@ -202,15 +152,29 @@ bool TActionController::addCookie(const QByteArray &name, const QByteArray &valu
     cookie.setDomain(domain);
     cookie.setSecure(secure);
     cookie.setHttpOnly(httpOnly);
+    cookie.setSameSite(sameSite);
+    return addCookie(cookie);
+}
+
+
+bool TActionController::addCookie(const QByteArray &name, const QByteArray &value, qint64 maxAge, const QString &path,
+    const QString &domain, bool secure, bool httpOnly, const QByteArray &sameSite)
+{
+    TCookie cookie(name, value);
+    cookie.setMaxAge(maxAge);
+    if (maxAge > 0) {
+        cookie.setExpirationDate(QDateTime::currentDateTime().addSecs(maxAge));  // For IE11
+    }
+    cookie.setPath(path);
+    cookie.setDomain(domain);
+    cookie.setSecure(secure);
+    cookie.setHttpOnly(httpOnly);
+    cookie.setSameSite(sameSite);
     return addCookie(cookie);
 }
 
 /*!
-  \~english
   Returns the authenticity token.
-
-  \~japanese
-  HTTPリクエストの正当性を検証するためのトークンを返す
  */
 QByteArray TActionController::authenticityToken() const
 {
@@ -228,11 +192,7 @@ QByteArray TActionController::authenticityToken() const
 }
 
 /*!
-  \~english
   Sets the HTTP session to \a session.
-
-  \~japanese
-  セッション \a session を設定する
  */
 void TActionController::setSession(const TSession &session)
 {
@@ -240,11 +200,7 @@ void TActionController::setSession(const TSession &session)
 }
 
 /*!
-  \~english
   Sets CSRF protection informaion into \a session. Internal use.
-
-  \~japanese
-  CSRF対策の情報をセッションに設定する (内部使用)
 */
 void TActionController::setCsrfProtectionInto(TSession &session)
 {
@@ -259,30 +215,23 @@ void TActionController::setCsrfProtectionInto(TSession &session)
 */
 const QStringList &TActionController::availableControllers()
 {
-    static QStringList controllers;
-    static QMutex mutex;
-
-    if (controllers.isEmpty()) {
-        QMutexLocker lock(&mutex);
-        for (int i = QMetaType::User; ; ++i) {
-            const char *name = QMetaType::typeName(i);
-            if (!name) {
-                break;
-            }
-
-            QString c(name);
-            if (c.endsWith(QStringLiteral("controller"))) {
-                controllers << c;
+    static QStringList controllers = []() {
+        QStringList controllers;
+        for (auto it = Tf::objectFactories()->cbegin(); it != Tf::objectFactories()->cend(); ++it) {
+            if (it.key().endsWith("controller")) {
+                controllers << QString::fromLatin1(it.key());
             }
         }
-    }
+        std::sort(controllers.begin(), controllers.end());
+        return controllers;
+    }();
     return controllers;
 }
 
 
 const QStringList &TActionController::disabledControllers()
 {
-    static const QStringList disabledNames = { "application" };
+    static const QStringList disabledNames = {"application"};
     return disabledNames;
 }
 
@@ -293,11 +242,7 @@ QString TActionController::loginUserNameKey()
 }
 
 /*!
-  \~english
   Verifies the HTTP request \a request.
-
-  \~japanese
-  HTTPリクエストを検証する
 */
 bool TActionController::verifyRequest(const THttpRequest &request) const
 {
@@ -321,11 +266,7 @@ bool TActionController::verifyRequest(const THttpRequest &request) const
 }
 
 /*!
-  \~english
   Renders the template of the action \a action with the layout \a layout.
-
-  \~japanese
-  レイアウト \a layout を適用し、アクション \a action のテンプレートを描画する
  */
 bool TActionController::render(const QString &action, const QString &layout)
 {
@@ -343,11 +284,7 @@ bool TActionController::render(const QString &action, const QString &layout)
 }
 
 /*!
-  \~english
   Renders the template given by \a templateName with the layout \a layout.
-
-  \~japanese
-  レイアウト \a layout を適用し、テンプレート \a templateName を描画する
 */
 bool TActionController::renderTemplate(const QString &templateName, const QString &layout)
 {
@@ -371,11 +308,7 @@ bool TActionController::renderTemplate(const QString &templateName, const QStrin
 }
 
 /*!
-  \~english
   Renders the text \a text with the layout \a layout.
-
-  \~japanese
-  レイアウト \a layout を適用し、テキストを描画する
 */
 bool TActionController::renderText(const QString &text, bool layoutEnable, const QString &layout)
 {
@@ -384,6 +317,10 @@ bool TActionController::renderText(const QString &text, bool layoutEnable, const
         return false;
     }
     rendered = true;
+
+    if (contentType() == DEFAULT_CONTENT_TYPE) {
+        setContentType(QByteArrayLiteral("text/plain"));
+    }
 
     // Creates TTextView object and displays it
     setLayout(layout);
@@ -470,8 +407,12 @@ bool TActionController::renderXml(const QStringList &list)
     return renderXml(doc);
 }
 
-
-bool TActionController::renderAndStoreInCache(const QByteArray &key, int seconds, const QString &action, const QString &layout)
+/*!
+  Renders the template of the \a action with the \a layout and caches it with
+  the \a key for \a seconds.
+  \sa renderOnCache()
+*/
+bool TActionController::renderAndCache(const QByteArray &key, int seconds, const QString &action, const QString &layout)
 {
     if (rendered) {
         tWarn("Has rendered already: %s", qPrintable(className() + '.' + activeAction()));
@@ -486,8 +427,12 @@ bool TActionController::renderAndStoreInCache(const QByteArray &key, int seconds
     return rendered;
 }
 
-
-bool TActionController::renderFromCache(const QByteArray &key)
+/*!
+  Renders the template cached with the \a key. If no item with the \a key
+  found, returns false.
+  \sa renderAndCache()
+*/
+bool TActionController::renderOnCache(const QByteArray &key)
 {
     if (rendered) {
         tWarn("Has rendered already: %s", qPrintable(className() + '.' + activeAction()));
@@ -504,18 +449,16 @@ bool TActionController::renderFromCache(const QByteArray &key)
     return rendered;
 }
 
-
-void TActionController::removeFromCache(const QByteArray &key)
+/*!
+  Removes the template with the \a key from the cache.
+*/
+void TActionController::removeCache(const QByteArray &key)
 {
     Tf::cache()->remove(key);
 }
 
 /*!
-  \~english
   Returns the rendering data of the partial template given by \a templateName.
-
-  \~japanese
-  部分テンプレート \a templateName に変数 \a vars を設定した描画データを返す
 */
 QString TActionController::getRenderingData(const QString &templateName, const QVariantMap &vars)
 {
@@ -535,7 +478,7 @@ QString TActionController::getRenderingData(const QString &templateName, const Q
 
     QVariantMap map = allVariants();
     for (auto it = vars.begin(); it != vars.end(); ++it) {
-        map.insert(it.key(), it.value()); // item's value of same key is replaced
+        map.insert(it.key(), it.value());  // item's value of same key is replaced
     }
 
     view->setController(this);
@@ -544,11 +487,7 @@ QString TActionController::getRenderingData(const QString &templateName, const Q
 }
 
 /*!
-  \~english
   Renders the \a view view.
-
-  \~japanese
-  ビューを描画する
 */
 QByteArray TActionController::renderView(TActionView *view)
 {
@@ -570,7 +509,7 @@ QByteArray TActionController::renderView(TActionView *view)
     TDispatcher<TActionView> layoutDispatcher(layoutClassName(lay));
     TActionView *layoutView = layoutDispatcher.object();
 
-    TDispatcher<TActionView> defLayoutDispatcher(layoutClassName("application"));
+    TDispatcher<TActionView> defLayoutDispatcher(layoutClassName(QLatin1String("application")));
     if (!layoutView) {
         if (!layout().isNull()) {
             tSystemDebug("Not found layout: %s", qPrintable(layout()));
@@ -606,7 +545,7 @@ bool TActionController::renderErrorResponse(int statusCode)
     }
 
     QString file = Tf::app()->publicPath() + QString::number(statusCode) + QLatin1String(".html");
-    if (QFileInfo(file).exists())  {
+    if (QFileInfo(file).exists()) {
         ret = sendFile(file, "text/html", "", false);
     } else {
         response.setBody("");
@@ -617,11 +556,7 @@ bool TActionController::renderErrorResponse(int statusCode)
 }
 
 /*!
-  \~english
   Returns the layout class name. Internal use.
-
-  \~japanese
-  レイアウトクラス名を返す
  */
 QString TActionController::layoutClassName(const QString &layout)
 {
@@ -629,11 +564,7 @@ QString TActionController::layoutClassName(const QString &layout)
 }
 
 /*!
-  \~english
   Returns the class name of the partial view. Internal use.
-
-  \~japanese
-  部分ビューのクラス名を返す（内部使用）
  */
 QString TActionController::partialViewClassName(const QString &partial)
 {
@@ -641,11 +572,7 @@ QString TActionController::partialViewClassName(const QString &partial)
 }
 
 /*!
-  \~english
   Redirects to the URL \a url.
-
-  \~japanese
-  URL \a url へリダイレクトする
  */
 void TActionController::redirect(const QUrl &url, int statusCode)
 {
@@ -658,7 +585,7 @@ void TActionController::redirect(const QUrl &url, int statusCode)
     setStatusCode(statusCode);
     response.header().setRawHeader("Location", url.toEncoded());
     response.setBody(QByteArray("<html><body>redirected.</body></html>"));
-    response.header().setContentType("text/html");
+    setContentType("text/html");
 
     // Enable flash-variants
     QVariant var;
@@ -667,11 +594,7 @@ void TActionController::redirect(const QUrl &url, int statusCode)
 }
 
 /*!
-  \~english
   Sends the file \a filePath as HTTP response.
-
-  \~japanese
-  HTTPレスポンスとして、ファイル \a filePath の内容を送信する
 */
 bool TActionController::sendFile(const QString &filePath, const QByteArray &contentType, const QString &name, bool autoRemove)
 {
@@ -690,7 +613,7 @@ bool TActionController::sendFile(const QString &filePath, const QByteArray &cont
     }
 
     response.setBodyFile(filePath);
-    response.header().setContentType(contentType);
+    setContentType(contentType);
 
     if (autoRemove) {
         setAutoRemove(filePath);
@@ -699,11 +622,7 @@ bool TActionController::sendFile(const QString &filePath, const QByteArray &cont
 }
 
 /*!
-  \~english
   Sends the data \a data as HTTP response.
-
-  \~japanese
-  HTTPレスポンスとして、データ \a data を送信する
 */
 bool TActionController::sendData(const QByteArray &data, const QByteArray &contentType, const QString &name)
 {
@@ -722,16 +641,12 @@ bool TActionController::sendData(const QByteArray &data, const QByteArray &conte
     }
 
     response.setBody(data);
-    response.header().setContentType(contentType);
+    setContentType(contentType);
     return true;
 }
 
 /*!
-  \~english
   Exports the all flash variants.
-
-  \~japanese
-  すべてのフラッシュオブジェクトをエクスポートする
 */
 void TActionController::exportAllFlashVariants()
 {
@@ -755,14 +670,9 @@ bool TActionController::validateAccess(const TAbstractUser *user)
 }
 
 /*!
-  \~english
   Logs the user \a user in to the system.
 
   This is a virtual function.
-  \~japanese
-  ユーザ \a user をシステムへログインさせる
-
-  \~
   \sa userLogout()
 */
 bool TActionController::userLogin(const TAbstractUser *user)
@@ -786,13 +696,9 @@ bool TActionController::userLogin(const TAbstractUser *user)
 }
 
 /*!
-  \~english
   Logs out of the system.
 
   This is a virtual function.
-  \~japanese
-  ユーザをログアウトさせる
-  \~
   \sa userLogin()
 */
 void TActionController::userLogout()
@@ -801,13 +707,8 @@ void TActionController::userLogout()
 }
 
 /*!
-  \~english
   Returns true if a user is logged in to the system; otherwise returns false.
-
   This is a virtual function.
-  \~japanese
-  ユーザがログインしている場合は true を返し、そうでない場合は false を返す
-  \~
   \sa userLogin()
 */
 bool TActionController::isUserLoggedIn() const
@@ -816,14 +717,10 @@ bool TActionController::isUserLoggedIn() const
 }
 
 /*!
-  \~english
   Returns the identity key of the user, i.e., TAbstractUser object,
   logged in.
 
   This is a virtual function.
-  \~japanese
-  ログインユーザのアイデンティティキーを返す
-  \~
   \sa userLogin()
 */
 QString TActionController::identityKeyOfLoginUser() const
@@ -832,17 +729,10 @@ QString TActionController::identityKeyOfLoginUser() const
 }
 
 /*!
-  \~english
   Sets the automatically removing file.
 
   The file \a filePath is removed when the context is extinguished,
   after replied the HTTP response.
-
-  \~japanese
-  自動削除するファイルを設定する
-
-  HTTPレスポンスを返却したあとコンテキストが消滅する際に、ファイル
-  \a filePath が削除される
 */
 void TActionController::setAutoRemove(const QString &filePath)
 {
@@ -852,11 +742,7 @@ void TActionController::setAutoRemove(const QString &filePath)
 }
 
 /*!
-  \~english
   Returns the client address of the current session.
-
-  \~japanese
-  セッションをはっているクライアントのアドレスを返す
 */
 QHostAddress TActionController::clientAddress() const
 {
@@ -877,11 +763,7 @@ void TActionController::setFlash(const QString &name, const QVariant &value)
 }
 
 /*!
-  \~english
   Sets the validation errors to flash variant.
-
-  \~japanese
-  バリデーションエラーとなったメッセージをフラッシュ変数へ設定する
 */
 void TActionController::setFlashValidationErrors(const TFormValidator &v, const QString &prefix)
 {
@@ -913,6 +795,22 @@ void TActionController::closeWebSokcet(int sid, int closeCode)
     QVariantList info;
     info << sid << closeCode;
     taskList << qMakePair((int)SendCloseTo, QVariant(info));
+}
+
+
+void TActionController::publish(const QString &topic, const QString &text)
+{
+    QVariantList info;
+    info << topic << text;
+    taskList << qMakePair((int)PublishText, QVariant(info));
+}
+
+
+void TActionController::publish(const QString &topic, const QByteArray &binary)
+{
+    QVariantList info;
+    info << topic << binary;
+    taskList << qMakePair((int)PublishBinary, QVariant(info));
 }
 
 

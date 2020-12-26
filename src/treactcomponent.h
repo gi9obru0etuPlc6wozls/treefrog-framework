@@ -1,15 +1,12 @@
-#ifndef TREACTCOMPONENT_H
-#define TREACTCOMPONENT_H
-
-#include <QStringList>
+#pragma once
 #include <QDateTime>
+#include <QStringList>
 #include <TGlobal>
 
 class TJSLoader;
 
 
-class T_CORE_EXPORT TReactComponent
-{
+class T_CORE_EXPORT TReactComponent {
 public:
     TReactComponent(const QString &moduleName, const QStringList &searchPaths = QStringList());
     virtual ~TReactComponent() { }
@@ -27,4 +24,3 @@ private:
     T_DISABLE_MOVE(TReactComponent)
 };
 
-#endif // TREACTCOMPONENT_H

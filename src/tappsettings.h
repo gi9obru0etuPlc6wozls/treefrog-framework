@@ -1,16 +1,13 @@
-#ifndef TAPPSETTINGS_H
-#define TAPPSETTINGS_H
-
-#include <TGlobal>
+#pragma once
 #include <QMap>
-#include <QVariant>
 #include <QMutex>
+#include <QVariant>
+#include <TGlobal>
 
 class QSettings;
 
 
-class T_CORE_EXPORT TAppSettings
-{
+class T_CORE_EXPORT TAppSettings {
 public:
     QVariant value(Tf::AppAttribute attr, const QVariant &defaultValue = QVariant()) const;
     QVariant readValue(const QString &attr, const QVariant &defaultValue = QVariant()) const;
@@ -28,4 +25,3 @@ private:
     T_DISABLE_COPY(TAppSettings)
     T_DISABLE_MOVE(TAppSettings)
 };
-#endif // TAPPSETTINGS_H

@@ -5,33 +5,32 @@
  * the New BSD License, which is incorporated herein by reference.
  */
 
-#include <QtCore>
-#include "global.h"
 #include "controllergenerator.h"
-#include "modelgenerator.h"
-#include "helpergenerator.h"
-#include "sqlobjgenerator.h"
-#include "mongoobjgenerator.h"
-#include "websocketgenerator.h"
-#include "validatorgenerator.h"
-#include "otamagenerator.h"
 #include "erbgenerator.h"
+#include "global.h"
+#include "helpergenerator.h"
 #include "mailergenerator.h"
-#include "projectfilegenerator.h"
-#include "tableschema.h"
+#include "modelgenerator.h"
 #include "mongocommand.h"
+#include "mongoobjgenerator.h"
+#include "otamagenerator.h"
+#include "projectfilegenerator.h"
+#include "sqlobjgenerator.h"
+#include "tableschema.h"
 #include "util.h"
+#include "validatorgenerator.h"
+#include "websocketgenerator.h"
+#include <QtCore>
 #ifndef Q_CC_MSVC
-# include <unistd.h>
+#include <unistd.h>
 #endif
 #include <ctime>
 
-#define L(str)  QLatin1String(str)
-#define SEP   QDir::separator()
-#define D_CTRLS   (QLatin1String("controllers") + SEP)
-#define D_MODELS  (QLatin1String("models") + SEP)
-#define D_VIEWS   (QLatin1String("views") + SEP)
-#define D_HELPERS (QLatin1String("helpers") + SEP)
+#define L(str) QLatin1String(str)
+#define D_CTRLS QLatin1String("controllers/")
+#define D_MODELS QLatin1String("models/")
+#define D_VIEWS QLatin1String("views/")
+#define D_HELPERS QLatin1String("helpers/")
 
 enum SubCommand {
     Invalid = 0,
@@ -56,10 +55,10 @@ enum SubCommand {
     ShowCollections,
 };
 
-class SubCommands : public QHash<QString, int>
-{
+class SubCommands : public QHash<QString, int> {
 public:
-    SubCommands() : QHash<QString, int>()
+    SubCommands() :
+        QHash<QString, int>()
     {
         insert("-h", Help);
         insert("--help", Help);
@@ -102,26 +101,26 @@ public:
 Q_GLOBAL_STATIC(SubCommands, subCommands)
 
 
-class SubDirs : public QStringList
-{
+class SubDirs : public QStringList {
 public:
-    SubDirs() : QStringList()
+    SubDirs() :
+        QStringList()
     {
         append(L("controllers"));
         append(L("models"));
-        append(L("models") + SEP + "sqlobjects");
-        append(L("models") + SEP + "mongoobjects");
+        append(L("models/sqlobjects"));
+        append(L("models/mongoobjects"));
         append(L("views"));
-        append(L("views") + SEP + "layouts");
-        append(L("views") + SEP + "mailer");
-        append(L("views") + SEP + "partial");
-        append(L("views") + SEP + "_src");
+        append(L("views/layouts"));
+        append(L("views/mailer"));
+        append(L("views/partial"));
+        append(L("views/_src"));
         append(L("helpers"));
         append(L("config"));
         append(L("public"));
-        append(L("public") + SEP + "images");
-        append(L("public") + SEP + "js");
-        append(L("public") + SEP + "css");
+        append(L("public/images"));
+        append(L("public/js"));
+        append(L("public/css"));
         append(L("db"));
         append(L("lib"));
         append(L("log"));
@@ -136,61 +135,61 @@ public:
 Q_GLOBAL_STATIC(SubDirs, subDirs)
 
 
-class FilePaths : public QStringList
-{
+class FilePaths : public QStringList {
 public:
-    FilePaths() : QStringList()
+    FilePaths() :
+        QStringList()
     {
         append(L("appbase.pri"));
-        append(L("controllers") + SEP + "controllers.pro");
-        append(L("controllers") + SEP + "applicationcontroller.h");
-        append(L("controllers") + SEP + "applicationcontroller.cpp");
-        append(L("models") + SEP + "models.pro");
+        append(L("controllers/controllers.pro"));
+        append(L("controllers/applicationcontroller.h"));
+        append(L("controllers/applicationcontroller.cpp"));
+        append(L("models/models.pro"));
 #ifdef Q_OS_WIN
-        append(L("models") + SEP + "_dummymodel.h");
-        append(L("models") + SEP + "_dummymodel.cpp");
+        append(L("models/_dummymodel.h"));
+        append(L("models/_dummymodel.cpp"));
 #endif
-        append(L("views") + SEP + "views.pro");
-        append(L("views") + SEP + "_src" + SEP + "_src.pro");
-        append(L("views") + SEP + "layouts" + SEP + ".trim_mode");
-        append(L("views") + SEP + "mailer"  + SEP + ".trim_mode");
-        append(L("views") + SEP + "partial" + SEP + ".trim_mode");
-        append(L("helpers") + SEP + "helpers.pro");
-        append(L("helpers") + SEP + "applicationhelper.h");
-        append(L("helpers") + SEP + "applicationhelper.cpp");
-        append(L("config") + SEP + "application.ini");
-        append(L("config") + SEP + "database.ini");
-        append(L("config") + SEP + "development.ini");
-        append(L("config") + SEP + "internet_media_types.ini");
-        append(L("config") + SEP + "logger.ini");
-        append(L("config") + SEP + "mongodb.ini");
-        append(L("config") + SEP + "redis.ini");
-        append(L("config") + SEP + "routes.cfg");
-        append(L("config") + SEP + "validation.ini");
-        append(L("config") + SEP + "cache.ini");
-        append(L("public") + SEP + "403.html");
-        append(L("public") + SEP + "404.html");
-        append(L("public") + SEP + "413.html");
-        append(L("public") + SEP + "500.html");
-        append(L("script") + SEP + "JSXTransformer.js");
-        append(L("script") + SEP + "react.js");             // React
-        append(L("script") + SEP + "react-with-addons.js"); // React
-        append(L("script") + SEP + "react-dom-server.js");  // React
+        append(L("views/views.pro"));
+        append(L("views/_src/_src.pro"));
+        append(L("views/layouts/.trim_mode"));
+        append(L("views/mailer/.trim_mode"));
+        append(L("views/partial/.trim_mode"));
+        append(L("helpers/helpers.pro"));
+        append(L("helpers/applicationhelper.h"));
+        append(L("helpers/applicationhelper.cpp"));
+        append(L("config/application.ini"));
+        append(L("config/database.ini"));
+        append(L("config/development.ini"));
+        append(L("config/internet_media_types.ini"));
+        append(L("config/logger.ini"));
+        append(L("config/mongodb.ini"));
+        append(L("config/redis.ini"));
+        append(L("config/routes.cfg"));
+        append(L("config/validation.ini"));
+        append(L("config/cache.ini"));
+        append(L("public/403.html"));
+        append(L("public/404.html"));
+        append(L("public/413.html"));
+        append(L("public/500.html"));
+        append(L("script/JSXTransformer.js"));
+        append(L("script/react.js"));  // React
+        append(L("script/react-with-addons.js"));  // React
+        append(L("script/react-dom-server.js"));  // React
         // CMake
         append(L("CMakeLists.txt"));
-        append(L("cmake") + SEP +"CacheClean.cmake");
-        append(L("cmake") + SEP +"TargetCmake.cmake");
-        append(L("controllers") + SEP + "CMakeLists.txt");
-        append(L("models") + SEP + "CMakeLists.txt");
-        append(L("views") + SEP + "CMakeLists.txt");
-        append(L("helpers") + SEP + "CMakeLists.txt");
+        append(L("cmake/CacheClean.cmake"));
+        append(L("cmake/TargetCmake.cmake"));
+        append(L("controllers/CMakeLists.txt"));
+        append(L("models/CMakeLists.txt"));
+        append(L("views/CMakeLists.txt"));
+        append(L("helpers/CMakeLists.txt"));
     }
 };
 Q_GLOBAL_STATIC(FilePaths, filePaths)
 
 
-const QString appIni = QLatin1String("config") + SEP + "application.ini";
-const QString devIni = QLatin1String("config") + SEP + "development.ini";
+const QString appIni = QLatin1String("config/application.ini");
+const QString devIni = QLatin1String("config/development.ini");
 static QSettings appSettings(appIni, QSettings::IniFormat);
 static QSettings devSettings(devIni, QSettings::IniFormat);
 static QString templateSystem;
@@ -198,25 +197,25 @@ static QString templateSystem;
 
 static void usage()
 {
-    printf("usage: tspawn <subcommand> [args]\n\n" \
-           "Type 'tspawn --show-drivers' to show all the available database drivers for Qt.\n" \
-           "Type 'tspawn --show-driver-path' to show the path of database drivers for Qt.\n" \
-           "Type 'tspawn --show-tables' to show all tables to user in the setting of 'dev'.\n" \
-           "Type 'tspawn --show-collections' to show all collections in the MongoDB.\n\n" \
-           "Available subcommands:\n" \
-           "  new (n)         <application-name>\n" \
-           "  scaffold (s)    <table-name> [model-name]\n" \
-           "  controller (c)  <controller-name> action [action ...]\n" \
-           "  model (m)       <table-name> [model-name]\n" \
-           "  helper (h)      <name>\n" \
-           "  usermodel (u)   <table-name> [username password [model-name]]\n" \
-           "  sqlobject (o)   <table-name> [model-name]\n"         \
-           "  mongoscaffold (ms) <model-name>\n"                   \
-           "  mongomodel (mm) <model-name>\n"                      \
-           "  websocket (w)   <endpoint-name>\n"                   \
-           "  validator (v)   <name>\n"                            \
-           "  mailer (l)      <mailer-name> action [action ...]\n" \
-           "  delete (d)      <table-name, helper-name or validator-name>\n");
+    std::printf("usage: tspawn <subcommand> [args]\n\n"
+                "Type 'tspawn --show-drivers' to show all the available database drivers for Qt.\n"
+                "Type 'tspawn --show-driver-path' to show the path of database drivers for Qt.\n"
+                "Type 'tspawn --show-tables' to show all tables to user in the setting of 'dev'.\n"
+                "Type 'tspawn --show-collections' to show all collections in the MongoDB.\n\n"
+                "Available subcommands:\n"
+                "  new (n)         <application-name>\n"
+                "  scaffold (s)    <table-name> [model-name]\n"
+                "  controller (c)  <controller-name> action [action ...]\n"
+                "  model (m)       <table-name> [model-name]\n"
+                "  helper (h)      <name>\n"
+                "  usermodel (u)   <table-name> [username password [model-name]]\n"
+                "  sqlobject (o)   <table-name> [model-name]\n"
+                "  mongoscaffold (ms) <model-name>\n"
+                "  mongomodel (mm) <model-name>\n"
+                "  websocket (w)   <endpoint-name>\n"
+                "  validator (v)   <name>\n"
+                "  mailer (l)      <mailer-name> action [action ...]\n"
+                "  delete (d)      <table-name, helper-name or validator-name>\n");
 }
 
 
@@ -225,12 +224,12 @@ static QStringList rmfiles(const QStringList &files, bool &allRemove, bool &quit
     QStringList rmd;
 
     // Removes files
-    for (QStringListIterator i(files); i.hasNext(); ) {
+    for (QStringListIterator i(files); i.hasNext();) {
         if (quit)
             break;
 
         const QString &fname = i.next();
-        QFile file(baseDir + SEP + fname);
+        QFile file(baseDir + "/" + fname);
         if (!file.exists())
             continue;
 
@@ -242,7 +241,7 @@ static QStringList rmfiles(const QStringList &files, bool &allRemove, bool &quit
 
         QTextStream stream(stdin);
         for (;;) {
-            printf("  remove  %s? [ynaqh] ", qPrintable(QDir::cleanPath(file.fileName())));
+            std::printf("  remove  %s? [ynaqh] ", qPrintable(QDir::cleanPath(file.fileName())));
 
             QString line = stream.readLine();
             if (line.isNull())
@@ -271,11 +270,11 @@ static QStringList rmfiles(const QStringList &files, bool &allRemove, bool &quit
                 break;
 
             } else if (c == 'H' || c == 'h') {
-                printf("   y - yes, remove\n");
-                printf("   n - no, do not remove\n");
-                printf("   a - all, remove this and all others\n");
-                printf("   q - quit, abort\n");
-                printf("   h - help, show this help\n\n");
+                std::printf("   y - yes, remove\n");
+                std::printf("   n - no, do not remove\n");
+                std::printf("   a - all, remove this and all others\n");
+                std::printf("   q - quit, abort\n");
+                std::printf("   h - help, show this help\n\n");
 
             } else {
                 // one more
@@ -285,7 +284,7 @@ static QStringList rmfiles(const QStringList &files, bool &allRemove, bool &quit
 
     if (!proj.isEmpty()) {
         // Updates the project file
-        ProjectFileGenerator(baseDir + SEP + proj).remove(rmd);
+        ProjectFileGenerator(baseDir + "/" + proj).remove(rmd);
     }
 
     return rmd;
@@ -322,7 +321,7 @@ static QByteArray randomString(int length)
 static bool createNewApplication(const QString &name)
 {
     if (name.isEmpty()) {
-         qCritical("invalid argument");
+        qCritical("invalid argument");
         return false;
     }
 
@@ -335,22 +334,22 @@ static bool createNewApplication(const QString &name)
         qCritical("failed to create a directory %s", qPrintable(name));
         return false;
     }
-    printf("  created   %s\n", qPrintable(name));
+    std::printf("  created   %s\n", qPrintable(name));
 
     // Creates sub-directories
     for (const QString &str : *subDirs()) {
-        QString d = name + SEP + str;
+        QString d = name + "/" + str;
         if (!mkpath(dir, d)) {
             return false;
         }
     }
 
     // Copies files
-    copy(dataDirPath + "app.pro", name + SEP + name + ".pro");
+    copy(dataDirPath + "app.pro", name + "/" + name + ".pro");
 
     for (auto &path : *filePaths()) {
         QString filename = QFileInfo(path).fileName();
-        QString dst = name + SEP + path;
+        QString dst = name + "/" + path;
 
         if (filename == "CMakeLists.txt") {
             copy(dataDirPath + path, dst);
@@ -366,8 +365,8 @@ static bool createNewApplication(const QString &name)
 
 #ifdef Q_OS_WIN
     // Add dummy model files
-    ProjectFileGenerator progen(name + SEP + D_MODELS + "models.pro");
-    QStringList dummy = { "_dummymodel.h", "_dummymodel.cpp" };
+    ProjectFileGenerator progen(name + "/" + D_MODELS + "models.pro");
+    QStringList dummy = {"_dummymodel.h", "_dummymodel.cpp"};
     progen.add(dummy);
 #endif
 
@@ -400,26 +399,26 @@ static int deleteScaffold(const QString &name)
         ctrls << str + "controller.h"
               << str + "controller.cpp";
 
-        models << QLatin1String("sqlobjects") + SEP + str + "object.h"
-               << QLatin1String("mongoobjects") + SEP + str + "object.h"
+        models << QLatin1String("sqlobjects/") + str + "object.h"
+               << QLatin1String("mongoobjects/") + str + "object.h"
                << str + ".h"
                << str + ".cpp";
 
         // Template system
         if (templateSystem == "otama") {
-            views << str + SEP + "index.html"
-                  << str + SEP + "index.otm"
-                  << str + SEP + "show.html"
-                  << str + SEP + "show.otm"
-                  << str + SEP + "create.html"
-                  << str + SEP + "create.otm"
-                  << str + SEP + "save.html"
-                  << str + SEP + "save.otm";
+            views << str + "/index.html"
+                  << str + "/index.otm"
+                  << str + "/show.html"
+                  << str + "/show.otm"
+                  << str + "/create.html"
+                  << str + "/create.otm"
+                  << str + "/save.html"
+                  << str + "/save.otm";
         } else if (templateSystem == "erb") {
-            views << str + SEP + "index.erb"
-                  << str + SEP + "show.erb"
-                  << str + SEP + "create.erb"
-                  << str + SEP + "save.erb";
+            views << str + "/index.erb"
+                  << str + "/show.erb"
+                  << str + "/create.erb"
+                  << str + "/save.erb";
         } else {
             qCritical("Invalid template system specified: %s", qPrintable(templateSystem));
             return 2;
@@ -445,7 +444,7 @@ static int deleteScaffold(const QString &name)
         // Removes views
         QStringList rmd = rmfiles(views, allRemove, quit, D_VIEWS);
         if (!rmd.isEmpty()) {
-            QString path = D_VIEWS + "_src" + SEP + str;
+            QString path = D_VIEWS + "_src/" + str;
             QFile::remove(path + "_indexView.cpp");
             QFile::remove(path + "_showView.cpp");
             QFile::remove(path + "_entryView.cpp");
@@ -474,7 +473,7 @@ static bool checkIniFile()
 static void printSuccessMessage(const QString &model)
 {
     QString msg;
-    if (!QFile("Makefile").exists() && !QFile(L("build") + SEP + "Makefile").exists()) {
+    if (!QFile("Makefile").exists() && !QFile(L("build/Makefile")).exists()) {
         msg = "qmake:\n Run `qmake -r%0 CONFIG+=debug` to generate a Makefile for debug mode.\n Run `qmake -r%0 CONFIG+=release` to generate a Makefile for release mode.\n";
 #ifdef Q_OS_DARWIN
         msg = msg.arg(" -spec macx-clang");
@@ -489,7 +488,7 @@ static void printSuccessMessage(const QString &model)
     putchar('\n');
     int port = appSettings.value("ListenPort").toInt();
     if (port > 0 && port <= USHRT_MAX)
-        printf(" Index page URL:  http://localhost:%d/%s/index\n\n", port, qPrintable(model));
+        std::printf(" Index page URL:  http://localhost:%d/%s/index\n\n", port, qPrintable(model));
 
     if (!msg.isEmpty()) {
         puts(qPrintable(msg));
@@ -522,29 +521,30 @@ int main(int argc, char *argv[])
         break;
 
     case ShowDrivers:
-        printf("Available database drivers for Qt:\n");
-        for (QStringListIterator i(TableSchema::databaseDrivers()); i.hasNext(); ) {
-            printf("  %s\n", qPrintable(i.next()));
+        std::printf("Available database drivers for Qt:\n");
+        for (QStringListIterator i(TableSchema::databaseDrivers()); i.hasNext();) {
+            std::printf("  %s\n", qPrintable(i.next()));
         }
         break;
 
     case ShowDriverPath: {
-        QString path = QLibraryInfo::location(QLibraryInfo::PluginsPath) + SEP + "sqldrivers";
+        QString path = QLibraryInfo::location(QLibraryInfo::PluginsPath) + "/sqldrivers";
         QFileInfo fi(path);
         if (!fi.exists() || !fi.isDir()) {
             qCritical("Error: database driver's directory not found");
             return 1;
         }
-        printf("%s\n", qPrintable(fi.canonicalFilePath()));
-        break; }
+        std::printf("%s\n", qPrintable(fi.canonicalFilePath()));
+        break;
+    }
 
     case ShowTables:
         if (checkIniFile()) {
             QStringList tables = TableSchema::tables();
             if (!tables.isEmpty()) {
-                printf("-----------------\nAvailable tables:\n");
-                for (QStringListIterator i(tables); i.hasNext(); ) {
-                    printf("  %s\n", qPrintable(i.next()));
+                std::printf("-----------------\nAvailable tables:\n");
+                for (QStringListIterator i(tables); i.hasNext();) {
+                    std::printf("  %s\n", qPrintable(i.next()));
                 }
                 putchar('\n');
             }
@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
         if (checkIniFile()) {
             // MongoDB settings
             QString mongoini = appSettings.value("MongoDbSettingsFile").toString().trimmed();
-            QString mnginipath = QLatin1String("config") + SEP + mongoini;
+            QString mnginipath = QLatin1String("config/") + mongoini;
 
             if (mongoini.isEmpty() || !QFile(mnginipath).exists()) {
                 qCritical("MongoDB settings file not found");
@@ -570,9 +570,9 @@ int main(int argc, char *argv[])
             }
 
             QStringList colls = mongo.getCollectionNames();
-            printf("-----------------\nExisting collections:\n");
+            std::printf("-----------------\nExisting collections:\n");
             for (auto &col : colls) {
-                printf("  %s\n", qPrintable(col));
+                std::printf("  %s\n", qPrintable(col));
             }
             putchar('\n');
         }
@@ -609,22 +609,26 @@ int main(int argc, char *argv[])
             QDir dir(D_VIEWS + ((ctrl.contains('_')) ? ctrl.toLower() : fieldNameToVariableName(ctrl).toLower()));
             mkpath(dir, ".");
             copy(dataDirPath + ".trim_mode", dir);
-            break; }
+            break;
+        }
 
         case Model: {
             ModelGenerator modelgen(ModelGenerator::Sql, args.value(3), args.value(2));
             modelgen.generate(D_MODELS);
-            break; }
+            break;
+        }
 
         case Helper: {
             HelperGenerator helpergen(args.value(2));
             helpergen.generate(D_HELPERS);
-            break; }
+            break;
+        }
 
         case UserModel: {
             ModelGenerator modelgen(ModelGenerator::Sql, args.value(5), args.value(2), args.mid(3, 2));
             modelgen.generate(D_MODELS, true);
-            break; }
+            break;
+        }
 
         case SqlObject: {
             SqlObjGenerator sqlgen(args.value(3), args.value(2));
@@ -633,7 +637,8 @@ int main(int argc, char *argv[])
             // Generates a project file
             ProjectFileGenerator progen(D_MODELS + "models.pro");
             progen.add(QStringList(path));
-            break; }
+            break;
+        }
 
         case MongoScaffold: {
             ModelGenerator modelgen(ModelGenerator::Mongo, args.value(2));
@@ -657,16 +662,18 @@ int main(int argc, char *argv[])
             if (success) {
                 printSuccessMessage(modelgen.model());
             }
-            break; }
+            break;
+        }
 
         case MongoModel: {
             ModelGenerator modelgen(ModelGenerator::Mongo, args.value(2));
             modelgen.generate(D_MODELS);
-            break; }
+            break;
+        }
 
         case WebSocketEndpoint: {
-            const QString appendpointfiles[] = { L("controllers") + SEP + "applicationendpoint.h",
-                                                 L("controllers") + SEP + "applicationendpoint.cpp" };
+            const QString appendpointfiles[] = {L("controllers/applicationendpoint.h"),
+                L("controllers/applicationendpoint.cpp")};
 
             ProjectFileGenerator progen(D_CTRLS + "controllers.pro");
 
@@ -680,18 +687,21 @@ int main(int argc, char *argv[])
 
             WebSocketGenerator wsgen(args.value(2));
             wsgen.generate(D_CTRLS);
-            break; }
+            break;
+        }
 
         case Validator: {
             ValidatorGenerator validgen(args.value(2));
             validgen.generate(D_HELPERS);
-            break; }
+            break;
+        }
 
         case Mailer: {
             MailerGenerator mailgen(args.value(2), args.mid(3));
             mailgen.generate(D_CTRLS);
-            copy(dataDirPath + "mail.erb", D_VIEWS + "mailer" + SEP +"mail.erb");
-            break; }
+            copy(dataDirPath + "mail.erb", D_VIEWS + "mailer/mail.erb");
+            break;
+        }
 
         case Scaffold: {
             ModelGenerator modelgen(ModelGenerator::Sql, args.value(3), args.value(2));
@@ -724,7 +734,8 @@ int main(int argc, char *argv[])
             if (success) {
                 printSuccessMessage(modelgen.model());
             }
-            break; }
+            break;
+        }
 
         case Delete: {
             // Removes files
@@ -732,13 +743,15 @@ int main(int argc, char *argv[])
             if (ret) {
                 return ret;
             }
-            break; }
+            break;
+        }
 
         default:
             qCritical("internal error");
             return 1;
         }
-        break; }
+        break;
+    }
     }
     return 0;
 }

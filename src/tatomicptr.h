@@ -1,27 +1,23 @@
-#ifndef TATOMICPTR_H
-#define TATOMICPTR_H
-
-#include <atomic>
+#pragma once
 #include <TGlobal>
+#include <atomic>
 
-namespace Tf
+namespace Tf {
+inline void threadFence()
 {
-    inline void threadFence()
-    {
-        atomic_thread_fence(std::memory_order_seq_cst);
-    }
+    atomic_thread_fence(std::memory_order_seq_cst);
+}
 }
 
 
 template <class T>
-class TAtomicPtr
-{
+class TAtomicPtr {
 public:
     TAtomicPtr(T *value = nullptr);
     TAtomicPtr(const TAtomicPtr<T> &other);
-    ~TAtomicPtr() {}
+    ~TAtomicPtr() { }
 
-    operator T*() const;
+    operator T *() const;
     T *load(bool *mark = nullptr) const;
     void store(T *value);
     T *exchange(T *value);
@@ -47,19 +43,21 @@ private:
 
 
 template <class T>
-inline TAtomicPtr<T>::TAtomicPtr(T *value)
-    : atomicPtr((quintptr)value)
-{ }
+inline TAtomicPtr<T>::TAtomicPtr(T *value) :
+    atomicPtr((quintptr)value)
+{
+}
 
 
 template <class T>
-inline TAtomicPtr<T>::TAtomicPtr(const TAtomicPtr<T> &other)
-    : atomicPtr(other.atomicPtr.load())
-{ }
+inline TAtomicPtr<T>::TAtomicPtr(const TAtomicPtr<T> &other) :
+    atomicPtr(other.atomicPtr.load())
+{
+}
 
 
 template <class T>
-inline TAtomicPtr<T>::operator T*() const
+inline TAtomicPtr<T>::operator T *() const
 {
     return load();
 }
@@ -72,7 +70,7 @@ inline T *TAtomicPtr<T>::load(bool *mark) const
     if (mark) {
         *mark = ptr & 0x1;
     }
-    return (T*)(ptr & ~MASK);
+    return (T *)(ptr & ~MASK);
 }
 
 
@@ -94,7 +92,7 @@ template <class T>
 inline T *TAtomicPtr<T>::exchange(T *value)
 {
     quintptr ptr = atomicPtr.exchange((quintptr)value);
-    return (T*)(ptr & ~MASK);
+    return (T *)(ptr & ~MASK);
 }
 
 
@@ -102,15 +100,15 @@ template <class T>
 inline bool TAtomicPtr<T>::compareExchange(T *expected, T *newValue)
 {
     quintptr exp = (quintptr)expected;
-    return atomicPtr.compare_exchange_weak((quintptr&)exp, (quintptr)newValue);
+    return atomicPtr.compare_exchange_weak((quintptr &)exp, (quintptr)newValue);
 }
 
 
 template <class T>
-inline bool TAtomicPtr<T>::compareExchangeStrong(T* expected, T *newValue)
+inline bool TAtomicPtr<T>::compareExchangeStrong(T *expected, T *newValue)
 {
     quintptr exp = (quintptr)expected;
-    return atomicPtr.compare_exchange_strong((quintptr&)exp, (quintptr)newValue);
+    return atomicPtr.compare_exchange_strong((quintptr &)exp, (quintptr)newValue);
 }
 
 
@@ -134,7 +132,7 @@ template <class T>
 inline void TAtomicPtr<T>::mark()
 {
     for (;;) {
-        T* ptr = load();
+        T *ptr = load();
         if ((ptr & 0x1) || compareExchange(ptr, ptr | 0x1)) {
             break;
         }
@@ -146,7 +144,7 @@ template <class T>
 inline void TAtomicPtr<T>::unmark()
 {
     for (;;) {
-        T* ptr = load();
+        T *ptr = load();
         if (!(ptr & 0x1) || compareExchange(ptr, ptr & ~0x1)) {
             break;
         }
@@ -160,4 +158,3 @@ inline bool TAtomicPtr<T>::isMarked() const
     return load() & 0x1;
 }
 
-#endif // TATOMICPTR_H

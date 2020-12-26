@@ -1,14 +1,11 @@
-#ifndef TKVSDRIVER_H
-#define TKVSDRIVER_H
-
+#pragma once
 #include <QString>
 #include <TGlobal>
 
 class QThread;
 
 
-class T_CORE_EXPORT TKvsDriver
-{
+class T_CORE_EXPORT TKvsDriver {
 public:
     virtual ~TKvsDriver() { }
     virtual QString key() const = 0;
@@ -19,4 +16,3 @@ public:
     virtual void moveToThread(QThread *) { }
 };
 
-#endif // TKVSDRIVER_H

@@ -1,16 +1,13 @@
-#ifndef MODELGENERATOR_H
-#define MODELGENERATOR_H
-
-#include <QStringList>
+#pragma once
 #include <QDir>
 #include <QPair>
+#include <QStringList>
 #include <QVariant>
 
 class AbstractObjGenerator;
 
 
-class ModelGenerator
-{
+class ModelGenerator {
 public:
     using FieldList = QList<QPair<QString, QVariant::Type>>;
     using PlaceholderList = QList<QPair<QString, QString>>;
@@ -44,8 +41,7 @@ private:
     ObjectType objectType {Sql};
     QString modelName;
     QString tableName;
-    AbstractObjGenerator *objGen;
+    AbstractObjGenerator *objGen = nullptr;
     QStringList userFields;
 };
 
-#endif // MODELGENERATOR_H

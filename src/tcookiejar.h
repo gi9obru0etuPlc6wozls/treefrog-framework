@@ -1,20 +1,15 @@
-#ifndef TCOOKIEJAR_H
-#define TCOOKIEJAR_H
-
+#pragma once
 #include <QList>
 #include <QString>
-#include <QNetworkCookie>
+#include <TCookie>
 #include <TGlobal>
-
-using TCookie = QNetworkCookie;
 
 #ifdef Q_CC_MSVC
 extern uint qHash(const TCookie &key);
 #endif
 
 
-class T_CORE_EXPORT TCookieJar : protected QList<TCookie>
-{
+class T_CORE_EXPORT TCookieJar : protected QList<TCookie> {
 public:
     TCookieJar() { }
     TCookieJar(const TCookieJar &jar);
@@ -36,4 +31,3 @@ inline QList<TCookie> TCookieJar::allCookies() const
     return *static_cast<const QList<TCookie> *>(this);
 }
 
-#endif // TCOOKIEJAR_H

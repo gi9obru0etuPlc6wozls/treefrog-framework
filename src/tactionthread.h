@@ -1,6 +1,4 @@
-#ifndef TACTIONTHREAD_H
-#define TACTIONTHREAD_H
-
+#pragma once
 #include <QThread>
 #include <TActionContext>
 
@@ -11,8 +9,7 @@ class THttpResponseHeader;
 class QIODevice;
 
 
-class T_CORE_EXPORT TActionThread : public QThread, public TActionContext
-{
+class T_CORE_EXPORT TActionThread : public QThread, public TActionContext {
     Q_OBJECT
 public:
     TActionThread(int socket, int maxThreads = 0);
@@ -36,9 +33,8 @@ signals:
 private:
     THttpSocket *_httpSocket {nullptr};
     int _maxThreads {0};
+    QByteArray _readBuffer;
 
     T_DISABLE_COPY(TActionThread)
     T_DISABLE_MOVE(TActionThread)
 };
-
-#endif // TACTIONTHREAD_H

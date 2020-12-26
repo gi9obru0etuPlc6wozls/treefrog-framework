@@ -1,19 +1,17 @@
-#ifndef TMODELUTIL_H
-#define TMODELUTIL_H
-
+#pragma once
 #include <QList>
 #include <TCriteria>
-#include <TSqlORMapper>
-#include <TSqlORMapperIterator>
 #include <TCriteriaConverter>
 #include <TMongoODMapper>
+#include <TSqlORMapper>
+#include <TSqlORMapperIterator>
 
 
 template <class T, class S>
 inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, const QList<QPair<QString, Tf::SortOrder>> &sortColumns, int limit = 0, int offset = 0)
 {
     TSqlORMapper<S> mapper;
-    if (! sortColumns.isEmpty()) {
+    if (!sortColumns.isEmpty()) {
         for (auto &p : sortColumns) {
             if (!p.first.isEmpty()) {
                 mapper.setSortOrder(p.first, p.second);
@@ -27,7 +25,9 @@ inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, const QList<QPair
         mapper.setOffset(offset);
     }
     QList<T> list;
-    if (mapper.find(cri) > 0) {
+    int count = mapper.find(cri);
+    if (count > 0) {
+        list.reserve(count);
         for (auto &o : mapper) {
             list << T(o);
         }
@@ -42,7 +42,7 @@ inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, const QList<QPair
 
     for (auto &p : sortColumns) {
         QString columnName = TCriteriaConverter<S>::getPropertyName(p.first, nullptr);
-        if (! columnName.isEmpty()) {
+        if (!columnName.isEmpty()) {
             sorts << qMakePair(columnName, p.second);
         }
     }
@@ -52,30 +52,33 @@ inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, const QList<QPair
 template <class T, class S>
 inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, int sortColumn, Tf::SortOrder order, int limit = 0, int offset = 0)
 {
-    QList<QPair<int, Tf::SortOrder>> sortColumns = { qMakePair(sortColumn, order) };
+    QList<QPair<int, Tf::SortOrder>> sortColumns = {qMakePair(sortColumn, order)};
     return tfGetModelListByCriteria<T, S>(cri, sortColumns, limit, offset);
 }
 
 template <class T, class S>
 inline QList<T> tfGetModelListByCriteria(const TCriteria &cri, QString sortColumn, Tf::SortOrder order, int limit = 0, int offset = 0)
 {
-    QList<QPair<QString, Tf::SortOrder>> sortColumns = { qMakePair(sortColumn, order) };
+    QList<QPair<QString, Tf::SortOrder>> sortColumns = {qMakePair(sortColumn, order)};
     return tfGetModelListByCriteria<T, S>(cri, sortColumns, limit, offset);
 }
 
 template <class T, class S>
 inline QList<T> tfGetModelListByCriteria(const TCriteria &cri = TCriteria(), int limit = 0, int offset = 0)
 {
-    QList<QPair<int, Tf::SortOrder>> sortColumns = { qMakePair(-1, Tf::AscendingOrder) };
+    QList<QPair<int, Tf::SortOrder>> sortColumns = {qMakePair(-1, Tf::AscendingOrder)};
     return tfGetModelListByCriteria<T, S>(cri, sortColumns, limit, offset);
 }
 
 
 template <class T, class S>
-inline QList<T> tfGetModelListByMongoCriteria(const TCriteria &cri, int limit = 0, int offset = 0)
+inline QList<T> tfGetModelListByMongoCriteria(const TCriteria &cri, int sortColumn, Tf::SortOrder order, int limit = 0, int offset = 0)
 {
     TMongoODMapper<S> mapper;
 
+    if (sortColumn >= 0) {
+        mapper.setSortOrder(sortColumn, order);
+    }
     if (limit > 0) {
         mapper.setLimit(limit);
     }
@@ -89,6 +92,13 @@ inline QList<T> tfGetModelListByMongoCriteria(const TCriteria &cri, int limit = 
         }
     }
     return list;
+}
+
+
+template <class T, class S>
+inline QList<T> tfGetModelListByMongoCriteria(const TCriteria &cri, int limit = 0, int offset = 0)
+{
+    return tfGetModelListByMongoCriteria<T, S>(cri, -1, Tf::AscendingOrder, limit, offset);
 }
 
 
@@ -115,4 +125,3 @@ inline QCborArray tfConvertToCborArray(const QList<T> &list)
 }
 #endif
 
-#endif // TMODELUTIL_H

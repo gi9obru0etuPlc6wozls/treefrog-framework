@@ -1,7 +1,7 @@
 @echo OFF
 @setlocal
 
-set VERSION=1.26.0
+set VERSION=1.30.0
 set TFDIR=C:\TreeFrog\%VERSION%
 set MONBOC_VERSION=1.9.5
 set LZ4_VERSION=1.9.2
@@ -93,20 +93,30 @@ if /i "%Platform%" == "x64" (
   set ENVSTR=Environment to build for 32-bit executable  MSVC / Qt
 )
 
-echo %QT_INSTALL_PREFIX% | find "msvc2015" >NUL
+echo %QT_INSTALL_PREFIX% | find "msvc2019" >NUL
 if not ERRORLEVEL 1 (
-  set VSVER=2015
+  set VSVER=2019
   if /i "%Platform%" == "x64" (
-    set CMAKEOPT=Visual Studio 14 2015 Win64
+    set CMAKEOPT=Visual Studio 16 2019
   ) else (
-    set CMAKEOPT=Visual Studio 14 2015
+    set CMAKEOPT=Visual Studio 16 2019
   )
 ) else (
-  set VSVER=2017
-   if /i "%Platform%" == "x64" (
-    set CMAKEOPT=Visual Studio 15 2017 Win64
+  echo %QT_INSTALL_PREFIX% | find "msvc2017" >NUL
+  if not ERRORLEVEL 1 (
+    set VSVER=2017
+    if /i "%Platform%" == "x64" (
+      set CMAKEOPT=Visual Studio 15 2017 Win64
+    ) else (
+      set CMAKEOPT=Visual Studio 15 2017
+    )
   ) else (
-    set CMAKEOPT=Visual Studio 15 2017
+    set VSVER=2015
+    if /i "%Platform%" == "x64" (
+      set CMAKEOPT=Visual Studio 14 2015 Win64
+    ) else (
+      set CMAKEOPT=Visual Studio 14 2015
+    )
   )
 )
 
@@ -139,15 +149,6 @@ echo     ^)>> %TFENV%
 echo   ^)>> %TFENV%
 echo ^)>> %TFENV%
 echo :break>> %TFENV%
-echo if not exist %%VCVARSBAT%% ^(>> %TFENV%
-echo   if not "%%VS140COMNTOOLS%%" == "" ^(>> %TFENV%
-echo     set VCVARSBAT="%%VS140COMNTOOLS%%..\..\VC\vcvarsall.bat">> %TFENV%
-echo   ^) else if not "%%VS120COMNTOOLS%%" == "" ^(>> %TFENV%
-echo     set VCVARSBAT="%%VS120COMNTOOLS%%..\..\VC\vcvarsall.bat">> %TFENV%
-echo   ^) else ^(>> %TFENV%
-echo     set VCVARSBAT="">> %TFENV%
-echo   ^)>> %TFENV%
-echo ^)>> %TFENV%
 echo if exist %%VCVARSBAT%% ^(>> %TFENV%
 echo   echo Setting up environment for MSVC usage...>> %TFENV%
 echo   call %%VCVARSBAT%% %VCVARSOPT%>> %TFENV%

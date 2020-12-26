@@ -1,14 +1,11 @@
-#ifndef TABSTRACTCONTROLLER_H
-#define TABSTRACTCONTROLLER_H
-
+#pragma once
 #include <QVariant>
 #include <TGlobal>
 
 class TFormValidator;
 
 
-class T_CORE_EXPORT TAbstractController
-{
+class T_CORE_EXPORT TAbstractController {
 public:
     TAbstractController();
     virtual ~TAbstractController() { }
@@ -42,4 +39,3 @@ inline bool TAbstractController::hasVariant(const QString &name) const
     return exportVars.contains(name);
 }
 
-#endif // TABSTRACTCONTROLLER_H

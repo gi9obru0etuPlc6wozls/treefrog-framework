@@ -1,12 +1,10 @@
-#ifndef TACTIONCONTEXT_H
-#define TACTIONCONTEXT_H
-
-#include <QStringList>
-#include <QMap>
-#include <TGlobal>
-#include <TAccessLog>
+#pragma once
 #include "tatomic.h"
 #include "tdatabasecontext.h"
+#include <QMap>
+#include <QStringList>
+#include <TAccessLog>
+#include <TGlobal>
 
 class QIODevice;
 class QHostAddress;
@@ -19,8 +17,7 @@ class TTemporaryFile;
 class TActionController;
 
 
-class T_CORE_EXPORT TActionContext : public TDatabaseContext
-{
+class T_CORE_EXPORT TActionContext : public TDatabaseContext {
 public:
     TActionContext();
     virtual ~TActionContext();
@@ -28,6 +25,7 @@ public:
     TTemporaryFile &createTemporaryFile();
     void stop() { stopped = true; }
     QHostAddress clientAddress() const;
+    QHostAddress originatingClientAddress() const;
     const TActionController *currentController() const { return currController; }
     THttpRequest &httpRequest() { return *httpReq; }
     const THttpRequest &httpRequest() const { return *httpReq; }
@@ -60,4 +58,3 @@ private:
     T_DISABLE_MOVE(TActionContext)
 };
 
-#endif // TACTIONCONTEXT_H
