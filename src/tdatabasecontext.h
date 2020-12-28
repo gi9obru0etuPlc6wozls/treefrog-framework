@@ -17,7 +17,7 @@ public:
     QSqlDatabase &getSqlDatabase(int id = 0);
     TKvsDatabase &getKvsDatabase(Tf::KvsEngine engine);
 
-    void setTransactionEnabled(bool enable, int id = 0);
+    void setTransactionEnabled(bool enable, int id = 0, const QString &commonName = "");
     void release();
     void commitTransactions();
     bool commitTransaction(int id = 0);

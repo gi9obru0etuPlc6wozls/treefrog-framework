@@ -24,12 +24,15 @@ public:
     bool isActive() const { return _active; }
     void setEnabled(bool enable);
     void setDisabled(bool disable);
+    void setCommonName(const QString &commonName);
+    const QString &commonName() const;
 
 private:
     QSqlDatabase _database;
     bool _enabled {true};
     bool _active {false};
     QString _connectionName;
+    QString _commonName;
 };
 
 

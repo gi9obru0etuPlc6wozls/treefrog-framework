@@ -43,6 +43,10 @@ public:
         insert(TSql::NotIn, " NOT IN (%1)");
         insert(TSql::Between, " BETWEEN %1 AND %2");
         insert(TSql::NotBetween, " NOT BETWEEN %1 AND %2");
+        insert(TSql::Contains, " LIKE %1");
+        insert(TSql::NotContains, " NOT LIKE %1");
+        insert(TSql::BeginsWith, " LIKE %1");
+        insert(TSql::EndsWith, " LIKE %1");
         insert(TSql::Any, "ANY (%1)");
         insert(TSql::All, "ALL (%1)");
     }

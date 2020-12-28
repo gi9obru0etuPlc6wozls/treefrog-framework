@@ -159,6 +159,25 @@ inline QString TCriteriaConverter<T>::criteriaToString(const QVariant &var) cons
                 sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(cri.val1, cri.varType, database));
                 break;
 
+            case TSql::BeginsWith: {
+                QVariant bwv(cri.val1.toString() + "%");
+                sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(bwv, cri.varType, database));
+                }
+                break;
+
+            case TSql::Contains: 
+            case TSql::NotContains: {
+                QVariant bwv("%" + cri.val1.toString() + "%");
+                sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(bwv, cri.varType, database));
+                }
+                break;
+
+            case TSql::EndsWith: {
+                QVariant ewv("%" + cri.val1.toString());
+                sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(ewv, cri.varType, database));
+                }
+                break;
+
             case TSql::In:
             case TSql::NotIn: {
                 auto inclause = [&](const QList<QVariant> &lst, int pos, int length) {
@@ -179,7 +198,7 @@ inline QString TCriteriaConverter<T>::criteriaToString(const QVariant &var) cons
                 const QList<QVariant> lst = cri.val1.toList();
 
                 if (lst.isEmpty()) {
-                    tWarn("error parameter");
+                    tWarn("error parameter 1");
                     break;
                 }
 
@@ -231,7 +250,7 @@ inline QString TCriteriaConverter<T>::criteriaToString(const QVariant &var) cons
                 break;
 
             default:
-                tWarn("error parameter");
+                tWarn("error parameter 2");
                 break;
             }
 

@@ -29,6 +29,7 @@ public:
         insert("trace",    TRoute::Trace);
         insert("connect",  TRoute::Connect);
         insert("patch",    TRoute::Patch);
+        insert("options",  TRoute::Options);
     }
 };
 Q_GLOBAL_STATIC(RouteDirectiveHash, directiveHash)

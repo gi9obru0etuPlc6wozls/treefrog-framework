@@ -113,3 +113,12 @@ bool TSqlTransaction::rollback()
     _active = false;
     return res;
 }
+
+void TSqlTransaction::setCommonName(const QString &commonName)
+{
+    _commonName = commonName;
+}
+
+const QString &TSqlTransaction::commonName() const {
+    return _commonName;
+}

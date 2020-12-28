@@ -60,8 +60,9 @@ QSqlDatabase &TDatabaseContext::getSqlDatabase(int id)
 
     int n = 0;
     do {
+        tSystemDebug("n: %d valid: %d", n, db.isValid());
         if (! db.isValid()) {
-            db = TSqlDatabasePool::instance()->database(id);
+            db = TSqlDatabasePool::instance()->x_database(id, tx.commonName());
         }
 
         if (tx.begin()) {
@@ -114,16 +115,19 @@ void TDatabaseContext::release()
     idleElapsed = 0;
 }
 
-
-void TDatabaseContext::setTransactionEnabled(bool enable, int id)
+void TDatabaseContext::setTransactionEnabled(bool enable, int id, const QString &commonName)
 {
     if (id < 0) {
         tError("Invalid database ID: %d", id);
         return;
     }
-    return sqlDatabases[id].setEnabled(enable);
+
+    if (!commonName.isEmpty()) {
+        sqlDatabases[id].setCommonName(commonName);
 }
 
+    return sqlDatabases[id].setEnabled(enable);
+}
 
 void TDatabaseContext::commitTransactions()
 {

@@ -92,6 +92,7 @@ QVariantMap TAbstractModel::toVariantMap() const
  */
 void TAbstractModel::setProperties(const QVariantMap &properties)
 {
+    // tSystemDebug("TAbstractModel::setProperties");
     // Creates a map of the original property name and the converted name
     const QStringList moprops = modelData()->propertyNames();
     QMap<QString, QString> mopropMap;

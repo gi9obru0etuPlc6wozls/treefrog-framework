@@ -270,6 +270,10 @@ namespace TSql
         NotIn,         // NOT IN (val1, ...)
         Between,       // BETWEEN val1 AND val2
         NotBetween,    // NOT BETWEEN val1 AND val2
+        Contains,      // LIKE val%
+        NotContains,      // LIKE val%
+        BeginsWith,    // LIKE val%
+        EndsWith,      // LIKE %val
         Any,           // ANY (val1, ...)
         All,           // ALL (val1, ...)
     };
