@@ -25,6 +25,8 @@
 #include <TSessionStore>
 #include <TWebApplication>
 
+#include <openssl/pem.h>
+
 /*!
   \class TActionContext
   \brief The TActionContext class is the base class of contexts for
@@ -162,8 +164,60 @@ void TActionContext::execute(THttpRequest &request, int sid)
             }
 
             // Database Transaction
+            if (method != Tf::Options ) {
             for (int databaseId = 0; databaseId < Tf::app()->sqlDatabaseSettingsCount(); ++databaseId) {
+                    tSystemDebug("Database Transaction: %d", databaseId);
+                    auto dbSettings = Tf::app()->sqlDatabaseSettings(databaseId);
+                    auto commonNameHeader = dbSettings.value("commonName").toByteArray();
+                    if (!commonNameHeader.isEmpty()) {
+    
+                        auto commonName = reqHeader.rawHeader(commonNameHeader);
+                        tSystemDebug("commonNameHeader: %s", commonNameHeader.toStdString().c_str());
+                        if (commonName.isEmpty()) {
+                            throw ClientErrorException(Tf::BadRequest, __FILE__, __LINE__);
+                        }
+                        tSystemDebug("commonName: %s", commonName.toStdString().c_str());
+    
+                        QString certPath = QString("%1/%2_crt.pem").arg(
+                                dbSettings.value("certDir").toString(),
+                                commonName.constData());
+                        tSystemDebug("certPath: %s", certPath.toStdString().c_str());
+    
+                        QFileInfo certInfo(certPath);
+    
+                        auto diffTime = QDateTime::currentDateTime().toSecsSinceEpoch() - certInfo.lastModified().toSecsSinceEpoch();
+                        tSystemDebug("Age: %lld - %lld = %lld", QDateTime::currentDateTime().toSecsSinceEpoch(),
+                                certInfo.lastModified().toSecsSinceEpoch(),
+                                diffTime);
+    
+                        if (!certInfo.exists() || diffTime > 60) {
+                            tSystemDebug("Certificate file being generated");
+                            auto userCertificate = QByteArray::fromBase64(
+                                    reqHeader.rawHeader(dbSettings.value("userCertificate").toByteArray()));
+                            if (userCertificate.isEmpty()) {
+                                throw ClientErrorException(Tf::BadRequest, __FILE__, __LINE__);
+                            }
+    
+                            const auto *data = (const unsigned char *) userCertificate.constData();
+                            unsigned int length = userCertificate.length();
+                            X509 *x509 = d2i_X509(nullptr, &data, length);
+    
+                            FILE *fdCert = fopen(certPath.toStdString().c_str(), "w");
+                            if (fdCert == nullptr) {
+                                throw TfException("fopen certificate failed", __FILE__, __LINE__);
+                            } else {
+                                if (PEM_write_X509(fdCert, x509) == 0) {
+                                    throw TfException("PEM_write_X509 failed", __FILE__, __LINE__);
+                                }
+                                fclose(fdCert);
+                            }
+                        }
+                        setTransactionEnabled(currController->transactionEnabled(), databaseId, commonName.constData());
+                    }
+                    else {
                 setTransactionEnabled(currController->transactionEnabled(), databaseId);
+                    }
+                }
             }
 
             // Do filters

@@ -18,10 +18,12 @@
 #include <ctime>
 
 constexpr auto CONN_NAME_FORMAT = "rdb%02d_%d";
+constexpr auto CONN_COMMONNAME_FORMAT = "udb%02d_%s";
 
 
 TSqlDatabasePool *TSqlDatabasePool::instance()
 {
+    //tSystemDebug("TSqlDatabasePool::instance");
     static TSqlDatabasePool *databasePool = []() {
         auto *pool = new TSqlDatabasePool;
         pool->maxConnects = Tf::app()->maxNumberOfThreadsPerAppServer();
@@ -83,6 +85,9 @@ void TSqlDatabasePool::init()
         return;
     }
 
+    tSystemDebug("+++ SQL database is available");
+    userDbCache = new TLruCache(3);   // TODO: allocate for each database
+
     cachedDatabase = new TStack<QString>[Tf::app()->sqlDatabaseSettingsCount()];
     lastCachedTime = new TAtomic<uint>[Tf::app()->sqlDatabaseSettingsCount()];
     availableNames = new TStack<QString>[Tf::app()->sqlDatabaseSettingsCount()];
@@ -91,11 +96,17 @@ void TSqlDatabasePool::init()
 
     // Adds databases previously
     for (int j = 0; j < Tf::app()->sqlDatabaseSettingsCount(); ++j) {
+        auto settings = Tf::app()->sqlDatabaseSettings(j);
+
         QString type = driverType(j);
         if (type.isEmpty()) {
             continue;
         }
         aval = true;
+
+        if (!settings.value("commonName").isNull()) {
+            continue;
+        }
 
         auto &stack = availableNames[j];
         for (int i = 0; i < maxConnects; ++i) {
@@ -113,28 +124,66 @@ void TSqlDatabasePool::init()
 
     if (aval) {
         // Starts the timer to close extra-connection
+        tSystemDebug("Timer started");
         timer.start(10000, this);
     }
 }
 
 
-QSqlDatabase TSqlDatabasePool::database(int databaseId)
+QSqlDatabase TSqlDatabasePool::x_database(int databaseId, const QString &commonName)
 {
-    TSqlDatabase tdb;
+//    TSqlDatabase tdb;
 
-    if (Q_LIKELY(databaseId >= 0 && databaseId < Tf::app()->sqlDatabaseSettingsCount())) {
+    if (Q_UNLIKELY(databaseId < 0 || databaseId >= Tf::app()->sqlDatabaseSettingsCount())) {
+        throw RuntimeException("No pooled connection", __FILE__, __LINE__);
+    }
+
+    if (!commonName.isEmpty()) {
+        tSystemDebug("*** Ooooweee");
+
+        QString type = driverType(databaseId);
+        if (type.isEmpty()) {
+            tSystemError("SQL database database type is null: %d", databaseId);
+            return QSqlDatabase();
+        }
+        tSystemDebug("SQL database database type: %s", type.toStdString().c_str());
+
+        auto dbName = QString().sprintf(CONN_COMMONNAME_FORMAT, databaseId, commonName.toLatin1().constData());
+        tSystemDebug("Connection name: %s", dbName.toLatin1().constData());
+
+        TSqlDatabase xdb = TSqlDatabase::database(dbName);
+        if (xdb.connectionName().isEmpty()) {
+            xdb = TSqlDatabase::addDatabase(type, dbName);
+            setCertAuthSettings(xdb, databaseId, commonName);
+            tSystemDebug("Add Database successfully. name:%s", qPrintable(xdb.connectionName()));
+        }
+
+        if (Q_UNLIKELY(!xdb.sqlDatabase().open())) {
+            tError("Database open error. Invalid database settings, or maximum number of SQL connection exceeded.");
+            tSystemError("SQL database open error: %s %s", qPrintable(xdb.sqlDatabase().connectionName()),
+                         qPrintable(xdb.sqlDatabase().lastError().text()));
+            return QSqlDatabase();
+        }
+
+        userDbCache->cache(dbName);
+
+        tSystemDebug("SQL database opened successfully (env:%s)", qPrintable(Tf::app()->databaseEnvironment()));
+        tSystemDebug("Gets database: %s", qPrintable(xdb.sqlDatabase().connectionName()));
+        return xdb.sqlDatabase();
+    } else {
         auto &cache = cachedDatabase[databaseId];
         auto &stack = availableNames[databaseId];
 
         for (;;) {
             QString name;
             if (cache.pop(name)) {
-                tdb = TSqlDatabase::database(name);
+                auto tdb = TSqlDatabase::database(name);
                 if (Q_LIKELY(tdb.sqlDatabase().isOpen())) {
                     tSystemDebug("Gets cached database: %s", qPrintable(tdb.connectionName()));
                     return tdb.sqlDatabase();
                 } else {
-                    tSystemError("Pooled database is not open: %s  [%s:%d]", qPrintable(tdb.connectionName()), __FILE__, __LINE__);
+                    tSystemError("Pooled database is not open: %s  [%s:%d]", qPrintable(tdb.connectionName()),
+                                 __FILE__, __LINE__);
                     stack.push(name);
                     continue;
                 }
@@ -153,7 +202,8 @@ QSqlDatabase TSqlDatabasePool::database(int databaseId)
                         return QSqlDatabase();
                     }
 
-                    tSystemDebug("SQL database opened successfully (env:%s)", qPrintable(Tf::app()->databaseEnvironment()));
+                    tSystemDebug("SQL database opened successfully (env:%s)",
+                                 qPrintable(Tf::app()->databaseEnvironment()));
                     tSystemDebug("Gets database: %s", qPrintable(tdb.sqlDatabase().connectionName()));
 
                     // Executes setup-queries
@@ -169,7 +219,74 @@ QSqlDatabase TSqlDatabasePool::database(int databaseId)
             }
         }
     }
-    throw RuntimeException("No pooled connection", __FILE__, __LINE__);
+}
+
+
+bool TSqlDatabasePool::setCertAuthSettings(TSqlDatabase &database, int databaseId, const QString &commonName)
+{
+    tSystemDebug("TSqlDatabasePool::setCertAuthSettings");
+    // Initiates database
+    auto settings = Tf::app()->sqlDatabaseSettings(databaseId);
+
+    QString databaseName = settings.value("DatabaseName").toString().trimmed();
+    if (databaseName.isEmpty()) {
+        tError("Database name empty string");
+        return false;
+    }
+
+    tSystemDebug("SQL driver name:%s  dbname:%s", qPrintable(database.sqlDatabase().driverName()), qPrintable(databaseName));
+    if (database.dbmsType() == TSqlDatabase::SQLite) {
+        if (!databaseName.contains(':')) {
+            QFileInfo fi(databaseName);
+            if (fi.isRelative()) {
+                // For SQLite
+                databaseName = Tf::app()->webRootPath() + databaseName;
+            }
+        }
+    }
+    database.sqlDatabase().setDatabaseName(databaseName);
+    tSystemDebug("Database databaseName: %s", database.sqlDatabase().databaseName().toStdString().c_str());
+
+    QString hostName = settings.value("HostName").toString().trimmed();
+    if (!hostName.isEmpty()) {
+        database.sqlDatabase().setHostName(hostName);
+        tSystemDebug("Database hostName: %s", database.sqlDatabase().hostName().toStdString().c_str());
+    }
+
+    int port = settings.value("Port").toInt();
+    if (port > 0) {
+        tSystemDebug("Database Port: %d", port);
+        database.sqlDatabase().setPort(port);
+    }
+
+    if (!commonName.isEmpty()) {
+        database.sqlDatabase().setUserName(commonName);
+        tSystemDebug("Database userName: %s", database.sqlDatabase().userName().toStdString().c_str());
+    }
+
+    QString connectOptions = QString("sslmode=verify-full;"
+                             "sslrootcert=/home/jwc/CLionProjects/tf2blog/root.crt;"
+                             "sslcert=%1/%2_crt.pem;"
+                             "sslkey=%1/%2_key.pem").arg(settings.value("certDir").toString(), commonName);
+    if (!connectOptions.isEmpty()) {
+        database.sqlDatabase().setConnectOptions(connectOptions);
+        tSystemDebug("Database connectOptions: %s", database.sqlDatabase().connectOptions().toStdString().c_str());
+    }
+
+    QStringList postOpenStatements = settings.value("PostOpenStatements").toString().trimmed().split(";", QString::SkipEmptyParts);
+    tSystemDebug("Database postOpenStatements: %s", qPrintable(postOpenStatements.join(";")));
+    if (!postOpenStatements.isEmpty()) {
+        database.setPostOpenStatements(postOpenStatements);
+    }
+
+    bool enableUpsert = settings.value("EnableUpsert", false).toBool();
+    tSystemDebug("Database enableUpsert: %d", enableUpsert);
+    database.setUpsertEnabled(enableUpsert);
+
+    auto *extension = TSqlDriverExtensionFactory::create(database.sqlDatabase().driverName(), database.sqlDatabase().driver());
+    database.setDriverExtension(extension);
+
+    return true;
 }
 
 
@@ -246,8 +363,15 @@ void TSqlDatabasePool::pool(QSqlDatabase &database, bool forceClose)
 {
     if (database.isValid()) {
         int databaseId = getDatabaseId(database);
+        tSystemDebug("Pooled datbase id: %d", databaseId);
 
-        if (databaseId >= 0 && databaseId < Tf::app()->sqlDatabaseSettingsCount()) {
+        if (Q_LIKELY(databaseId >= 0 && databaseId < Tf::app()->sqlDatabaseSettingsCount())) {
+            auto commonName = Tf::app()->sqlDatabaseSettings(databaseId).value("commonName").toString();
+            tSystemDebug("Pooling commonName: %s", commonName.toStdString().c_str());
+            if (!commonName.isNull()) {
+                tSystemDebug("--- Ooooweee");
+            }
+            else {
             if (forceClose) {
                 tSystemWarn("Force close database: %s", qPrintable(database.connectionName()));
                 closeDatabase(database);
@@ -256,6 +380,7 @@ void TSqlDatabasePool::pool(QSqlDatabase &database, bool forceClose)
                 cachedDatabase[databaseId].push(database.connectionName());
                 lastCachedTime[databaseId].store((uint)std::time(nullptr));
                 tSystemDebug("Pooled database: %s", qPrintable(database.connectionName()));
+                }
             }
         } else {
             tSystemError("Pooled invalid database  [%s:%d]", __FILE__, __LINE__);
@@ -267,11 +392,19 @@ void TSqlDatabasePool::pool(QSqlDatabase &database, bool forceClose)
 
 void TSqlDatabasePool::timerEvent(QTimerEvent *event)
 {
+//    tSystemDebug("TSqlDatabasePool::timerEvent");
     if (event->timerId() == timer.timerId()) {
         QString name;
 
         // Closes extra-connection
         for (int i = 0; i < Tf::app()->sqlDatabaseSettingsCount(); ++i) {
+            auto commonName = Tf::app()->sqlDatabaseSettings(i).value("commonName").toString();
+//            tSystemDebug("Pooling commonName: %s", commonName.toStdString().c_str());
+            if (!commonName.isNull()) {
+//                tSystemDebug("--- timerEvent");
+                userDbCache->expire();
+            }
+            else {
             auto &cache = cachedDatabase[i];
             if (cache.count() == 0) {
                 continue;
@@ -281,6 +414,7 @@ void TSqlDatabasePool::timerEvent(QTimerEvent *event)
                 && cache.pop(name)) {
                 QSqlDatabase db = TSqlDatabase::database(name).sqlDatabase();
                 closeDatabase(db);
+                }
             }
         }
     } else {

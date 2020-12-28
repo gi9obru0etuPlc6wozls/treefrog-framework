@@ -247,34 +247,39 @@ enum class KvsEngine {
   \brief The TSql namespace contains miscellaneous identifiers used
   throughout the SQL library.
 */
-namespace TSql {
-enum ComparisonOperator {
-    Invalid = 0,
-    Equal,  // = val
-    NotEqual,  // <> val
-    LessThan,  // < val
-    GreaterThan,  // > val
-    LessEqual,  // <= val
-    GreaterEqual,  // >= val
-    IsNull,  // IS NULL
-    IsEmpty,  // (column IS NULL OR column = '')
-    IsNotNull,  // IS NOT NULL
-    IsNotEmpty,  // column IS NOT NULL AND column <> ''
-    Like,  // LIKE val
-    NotLike,  // NOT LIKE val
-    LikeEscape,  // LIKE val1 ESCAPE val2
-    NotLikeEscape,  // NOT LIKE val1 ESCAPE val2
-    ILike,  // ILIKE val
-    NotILike,  // NOT ILIKE  val
-    ILikeEscape,  // ILIKE val1 ESCAPE val2
-    NotILikeEscape,  // NOT ILIKE val1 ESCAPE val2
-    In,  // IN (val1, ...)
-    NotIn,  // NOT IN (val1, ...)
-    Between,  // BETWEEN val1 AND val2
-    NotBetween,  // NOT BETWEEN val1 AND val2
-    Any,  // ANY (val1, ...)
-    All,  // ALL (val1, ...)
-};
+namespace TSql
+{
+    enum ComparisonOperator {
+        Invalid = 0,
+        Equal,        // = val
+        NotEqual,     // <> val
+        LessThan,     // < val
+        GreaterThan,  // > val
+        LessEqual,    // <= val
+        GreaterEqual, // >= val
+        IsNull,       // IS NULL
+        IsEmpty,      // (column IS NULL OR column = '')
+        IsNotNull,    // IS NOT NULL
+        IsNotEmpty,   // column IS NOT NULL AND column <> ''
+        Like,          // LIKE val
+        NotLike,       // NOT LIKE val
+        LikeEscape,    // LIKE val1 ESCAPE val2
+        NotLikeEscape, // NOT LIKE val1 ESCAPE val2
+        ILike,         // ILIKE val
+        NotILike,      // NOT ILIKE  val
+        ILikeEscape,    // ILIKE val1 ESCAPE val2
+        NotILikeEscape, // NOT ILIKE val1 ESCAPE val2
+        In,            // IN (val1, ...)
+        NotIn,         // NOT IN (val1, ...)
+        Between,       // BETWEEN val1 AND val2
+        NotBetween,    // NOT BETWEEN val1 AND val2
+        Contains,      // LIKE val%
+        NotContains,      // LIKE val%
+        BeginsWith,    // LIKE val%
+        EndsWith,      // LIKE %val
+        Any,           // ANY (val1, ...)
+        All,           // ALL (val1, ...)
+    };
 
 enum JoinMode {
     InnerJoin = 0,

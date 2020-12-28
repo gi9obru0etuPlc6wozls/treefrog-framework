@@ -20,15 +20,16 @@ public:
     RouteDirectiveHash() :
         QMap<QString, int>()
     {
-        insert("match", TRoute::Match);
-        insert("get", TRoute::Get);
-        insert("post", TRoute::Post);
-        insert("put", TRoute::Put);
-        insert("patch", TRoute::Patch);
-        insert("delete", TRoute::Delete);
-        insert("trace", TRoute::Trace);
-        insert("connect", TRoute::Connect);
-        insert("patch", TRoute::Patch);
+        insert("match",    TRoute::Match);
+        insert("get",      TRoute::Get);
+        insert("post",     TRoute::Post);
+        insert("put",      TRoute::Put);
+        insert("patch",    TRoute::Patch);
+        insert("delete",   TRoute::Delete);
+        insert("trace",    TRoute::Trace);
+        insert("connect",  TRoute::Connect);
+        insert("patch",    TRoute::Patch);
+        insert("options",  TRoute::Options);
     }
 };
 Q_GLOBAL_STATIC(RouteDirectiveHash, directiveHash)

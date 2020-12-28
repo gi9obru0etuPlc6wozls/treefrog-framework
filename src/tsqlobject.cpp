@@ -126,32 +126,15 @@ void TSqlObject::setRecord(const QSqlRecord &record, const QSqlError &error)
 */
 bool TSqlObject::create()
 {
-    // Sets the values of 'created_at', 'updated_at' or 'modified_at' properties
-    for (int i = metaObject()->propertyOffset(); i < metaObject()->propertyCount(); ++i) {
-        const char *propName = metaObject()->property(i).name();
-        QByteArray prop = QByteArray(propName).toLower();
-
-        if (prop == CreatedAt || prop == UpdatedAt || prop == ModifiedAt) {
-            setProperty(propName, QDateTime::currentDateTime());
-        } else if (prop == LockRevision) {
-            // Sets the default value of 'revision' property
-            setProperty(propName, 1);  // 1 : default value
-        } else {
-            // do nothing
-        }
-    }
-
+    tSystemDebug("TSqlObject::create");
     syncToSqlRecord();
 
     QString autoValName;
     QSqlRecord record = *this;
-    if (autoValueIndex() >= 0) {
-        autoValName = field(autoValueIndex()).name();
-        record.remove(autoValueIndex());  // not insert the value of auto-value field
-    }
-
+    record.remove(this->primaryKeyIndex());
     QSqlDatabase &database = Tf::currentSqlDatabase(databaseId());
     QString ins = database.driver()->sqlStatement(QSqlDriver::InsertStatement, tableName(), record, false);
+    ins += " RETURNING *";
     if (Q_UNLIKELY(ins.isEmpty())) {
         sqlError = QSqlError(QLatin1String("No fields to insert"),
             QString(), QSqlError::StatementError);
@@ -167,17 +150,9 @@ bool TSqlObject::create()
         if (autoValueIndex() >= 0) {
             QVariant lastid = query.lastInsertId();
 
-#if QT_VERSION >= 0x050400
-            if (!lastid.isValid() && database.driver()->dbmsType() == QSqlDriver::PostgreSQL) {
-#else
-            if (!lastid.isValid() && database.driverName().toUpper() == QLatin1String("QPSQL")) {
-#endif
-                // For PostgreSQL without OIDS
-                ret = query.exec(QStringLiteral("SELECT LASTVAL()"));
-                sqlError = query.lastError();
-                if (Q_LIKELY(ret)) {
-                    lastid = query.getNextValue();
-                }
+    if (ret && query.next()) {
+        setRecord(query.record(), sqlError);
+        syncToObject();
             }
 
             if (lastid.isValid()) {
@@ -194,6 +169,7 @@ bool TSqlObject::create()
 */
 bool TSqlObject::update()
 {
+    tSystemDebug("TSqlObject::update");
     if (isNew()) {
         sqlError = QSqlError(QLatin1String("No record to update"),
             QString(), QSqlError::UnknownError);
@@ -266,7 +242,8 @@ bool TSqlObject::update()
         const char *propName = metaProp.name();
         QVariant newval = QObject::property(propName);
         QVariant recval = QSqlRecord::value(QLatin1String(propName));
-        if (i != pkidx && recval.isValid() && recval != newval) {
+//        if (i != pkidx && recval.isValid() && recval != newval) {
+        if (i != pkidx && recval.isValid()) {
             upd.append(QLatin1String(propName));
             upd.append(QLatin1Char('='));
             upd.append(TSqlQuery::formatValue(newval, metaProp.type(), database));
@@ -282,18 +259,17 @@ bool TSqlObject::update()
     upd.chop(1);
     syncToSqlRecord();
     upd.append(where);
+    upd.append(QLatin1String(" RETURNING *"));
 
     TSqlQuery query(database);
     bool ret = query.exec(upd);
     sqlError = query.lastError();
-    if (ret) {
-        // Optimistic lock check
-        if (revIndex >= 0 && query.numRowsAffected() != 1) {
-            QString msg = QString("Row was updated or deleted from table ") + tableName() + QLatin1String(" by another transaction");
-            sqlError = QSqlError(msg, QString(), QSqlError::UnknownError);
-            throw SqlException(msg, __FILE__, __LINE__);
+
+    if (ret && query.next()) {
+        setRecord(query.record(), sqlError);
+        syncToObject();
         }
-    }
+
     return ret;
 }
 
@@ -398,18 +374,17 @@ bool TSqlObject::remove()
         QByteArray prop = QByteArray(propName).toLower();
 
         if (prop == LockRevision) {
-            bool ok;
-            int revision = property(propName).toInt(&ok);
+            QUuid revision = property(propName).toUuid();
 
-            if (!ok || revision <= 0) {
-                sqlError = QSqlError(QLatin1String("Unable to convert the 'revision' property to an int"),
-                    QString(), QSqlError::UnknownError);
+            if (revision.isNull()) {
+                sqlError = QSqlError(QLatin1String("Unable to convert the 'revision' property to an uuid"),
+                                     QString(), QSqlError::UnknownError);
                 tError("Unable to convert the 'revision' property to an int, %s", qPrintable(objectName()));
                 return false;
             }
 
             del.append(QLatin1String(propName));
-            del.append(QLatin1Char('=')).append(TSqlQuery::formatValue(revision, QVariant::Int, database));
+            del.append(QLatin1Char('=')).append(TSqlQuery::formatValue(revision, QVariant::Uuid, database));
             del.append(QLatin1String(" AND "));
 
             revIndex = i;
