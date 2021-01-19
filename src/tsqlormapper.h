@@ -22,15 +22,15 @@
 
 class TSqlORMapperBase : public virtual QSqlTableModel {
 public:
-    virtual void setLimit(int limit);
-    virtual void setOffset(int offset);
-    virtual void setSortOrder(int column, Tf::SortOrder order = Tf::AscendingOrder);
-    virtual void setSortOrder(const QString &column, Tf::SortOrder order = Tf::AscendingOrder);
-    virtual int findCount(const TCriteria &cri = TCriteria());
-    virtual int findCountBy(int column, const QVariant &value);
-    virtual int find(const TCriteria &cri = TCriteria());
-    virtual int findBy(int column, QVariant value);
-    virtual int findIn(int column, const QVariantList &values);
+    virtual void setLimit(int limit) = 0;
+    virtual void setOffset(int offset) = 0;
+    virtual void setSortOrder(int column, Tf::SortOrder order = Tf::AscendingOrder) = 0;
+    virtual void setSortOrder(const QString &column, Tf::SortOrder order = Tf::AscendingOrder) = 0;
+    virtual int findCount(const TCriteria &cri = TCriteria()) = 0;
+    virtual int findCountBy(int column, const QVariant &value) = 0;
+    virtual int find(const TCriteria &cri = TCriteria()) = 0;
+    int findBy(int column, QVariant value) { throw RuntimeException("What is my purpose?", __FILE__, __LINE__); };
+    virtual int findIn(int column, const QVariantList &values) = 0;
 };
 
 template <class T>
