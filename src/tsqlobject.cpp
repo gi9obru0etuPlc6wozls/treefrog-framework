@@ -129,7 +129,6 @@ bool TSqlObject::create()
     tSystemDebug("TSqlObject::create");
     syncToSqlRecord();
 
-    QString autoValName;
     QSqlRecord record = *this;
     record.remove(this->primaryKeyIndex());
     QSqlDatabase &database = Tf::currentSqlDatabase(databaseId());
@@ -145,22 +144,12 @@ bool TSqlObject::create()
     TSqlQuery query(database);
     bool ret = query.exec(ins);
     sqlError = query.lastError();
-    if (Q_LIKELY(ret)) {
-        // Gets the last inserted value of auto-value field
-        if (autoValueIndex() >= 0) {
-            QVariant lastid = query.lastInsertId();
 
     if (ret && query.next()) {
         setRecord(query.record(), sqlError);
         syncToObject();
-            }
-
-            if (lastid.isValid()) {
-                QObject::setProperty(autoValName.toLatin1().constData(), lastid);
-                QSqlRecord::setValue(autoValueIndex(), lastid);
-            }
-        }
     }
+
     return ret;
 }
 
@@ -181,40 +170,6 @@ bool TSqlObject::update()
     QString where;
     where.reserve(255);
     where.append(QLatin1String(" WHERE "));
-
-    // Updates the value of 'updated_at' or 'modified_at' property
-    bool updflag = false;
-    int revIndex = -1;
-
-    for (int i = metaObject()->propertyOffset(); i < metaObject()->propertyCount(); ++i) {
-        const char *propName = metaObject()->property(i).name();
-        QByteArray prop = QByteArray(propName).toLower();
-
-        if (!updflag && (prop == UpdatedAt || prop == ModifiedAt)) {
-            setProperty(propName, QDateTime::currentDateTime());
-            updflag = true;
-
-        } else if (revIndex < 0 && prop == LockRevision) {
-            bool ok;
-            int oldRevision = property(propName).toInt(&ok);
-
-            if (!ok || oldRevision <= 0) {
-                sqlError = QSqlError(QLatin1String("Unable to convert the 'revision' property to an int"),
-                    QString(), QSqlError::UnknownError);
-                tError("Unable to convert the 'revision' property to an int, %s", qPrintable(objectName()));
-                return false;
-            }
-
-            setProperty(propName, oldRevision + 1);
-            revIndex = i;
-
-            where.append(QLatin1String(propName));
-            where.append(QLatin1Char('=')).append(TSqlQuery::formatValue(oldRevision, QVariant::Int, database));
-            where.append(QLatin1String(" AND "));
-        } else {
-            // continue
-        }
-    }
 
     QString upd;  // UPDATE Statement
     upd.reserve(255);
