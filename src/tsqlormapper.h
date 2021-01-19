@@ -20,8 +20,22 @@
 */
 
 
+class TSqlORMapperBase : public virtual QSqlTableModel {
+public:
+    virtual void setLimit(int limit);
+    virtual void setOffset(int offset);
+    virtual void setSortOrder(int column, Tf::SortOrder order = Tf::AscendingOrder);
+    virtual void setSortOrder(const QString &column, Tf::SortOrder order = Tf::AscendingOrder);
+    virtual int findCount(const TCriteria &cri = TCriteria());
+    virtual int findCountBy(int column, const QVariant &value);
+    virtual int find(const TCriteria &cri = TCriteria());
+    virtual int findBy(int column, QVariant value);
+    virtual int findIn(int column, const QVariantList &values);
+};
+
 template <class T>
-class TSqlORMapper : public QSqlTableModel {
+class TSqlORMapper : public virtual TSqlORMapperBase
+{
 public:
     TSqlORMapper();
     virtual ~TSqlORMapper();
