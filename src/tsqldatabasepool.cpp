@@ -265,7 +265,7 @@ bool TSqlDatabasePool::setCertAuthSettings(TSqlDatabase &database, int databaseI
     }
 
     QString connectOptions = QString("sslmode=verify-full;"
-                             "sslrootcert=/home/jwc/CLionProjects/tf2blog/root.crt;"
+                             "sslrootcert=/certs/ca.crt;"
                              "sslcert=%1/%2_crt.pem;"
                              "sslkey=%1/%2_key.pem").arg(settings.value("certDir").toString(), commonName);
     if (!connectOptions.isEmpty()) {
