@@ -25,9 +25,10 @@ constexpr auto MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                             "#include <QSharedDataPointer>\n"
                                             "#include <TGlobal>\n"
                                             "#include <TAbstractModel>\n"
+                                            "#include \"../helpers/RequestCriteria.h\"\n"
+                                            "#include \"sqlobjects/%modelLower%object.h\"\n"
                                             "\n"
                                             "class TModelObject;\n"
-                                            "class %model%Object;\n"
                                             "%7%"
                                             "\n\n"
                                             "class T_MODEL_EXPORT %model% : public TAbstractModel\n"
@@ -37,6 +38,10 @@ constexpr auto MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                             "    %model%(const %model% &other);\n"
                                             "    %model%(const %model%Object &object);\n"
                                             "    ~%model%();\n"
+                                            "\n"
+                                            "    inline static const QMap<QString, int> &propertyIndexMap() {\n"
+                                            "        return %model%Object::propertyIndexMap();\n"
+                                            "    }\n"
                                             "\n"
                                             "%setgetDecl%"
                                             "    %model% &operator=(const %model% &other);\n"
@@ -54,6 +59,7 @@ constexpr auto MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                             "    static int count();\n"
                                             "    static QList<%model%> getAll();\n"
                                             "%8%"
+                                            "%9%"
                                             "\n"
                                             "private:\n"
                                             "    QSharedDataPointer<%model%Object> d;\n"
@@ -137,6 +143,7 @@ constexpr auto MODEL_IMPL_TEMPLATE = "#include <TreeFrogModel>\n"
                                      "}\n"
                                      "\n"
                                      "%12%"
+                                     "%18%"
                                      "TModelObject *%model%::modelData()\n"
                                      "{\n"
                                      "    return d.data();\n"
@@ -175,6 +182,7 @@ constexpr auto USER_MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                                  "#include <TGlobal>\n"
                                                  "#include <TAbstractUser>\n"
                                                  "#include <TAbstractModel>\n"
+                                                 "#include \"../helpers/RequestCriteria.h\"\n"
                                                  "\n"
                                                  "class TModelObject;\n"
                                                  "class %model%Object;\n"
@@ -206,6 +214,7 @@ constexpr auto USER_MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                                  "    static int count();\n"
                                                  "    static QList<%model%> getAll();\n"
                                                  "%8%"
+                                                 "%9%"
                                                  "\n"
                                                  "private:\n"
                                                  "    QSharedDataPointer<%model%Object> d;\n"
@@ -345,6 +354,20 @@ constexpr auto MODEL_IMPL_GETALLJSON = "QJsonArray %model%::getAllJson()\n"
                                        "        }\n"
                                        "    }\n"
                                        "    return array;\n"
+                                       "}\n"
+                                       "\n";
+
+constexpr auto MODEL_IMPL_GETJSON    = "QJsonArray %model%::getJson(const RequestCriteria &criteria)\n"
+                                       "{\n"
+                                       "    QJsonArray jsonArray;\n"
+                                       "    auto *mapper = dynamic_cast<TSqlORMapper<%model%Object> *>(criteria.getMapper());\n"
+                                       "\n"
+                                       "    if (mapper->find(criteria.getCriteria()) > 0) {\n"
+                                       "        for (TSqlORMapperIterator<%model%Object> i(*mapper); i.hasNext(); ) {\n"
+                                       "            jsonArray.append(%model%(i.next()).toJsonObject());\n"
+                                       "        }\n"
+                                       "    }\n"
+                                       "    return jsonArray;\n"
                                        "}\n"
                                        "\n";
 
@@ -569,6 +592,7 @@ QPair<ModelGenerator::PlaceholderList, ModelGenerator::PlaceholderList> ModelGen
 
     headerList << pair("head", modelName.toUpper())
                << pair("model", modelName)
+               << pair("modelLower", modelName.toLower())
                << pair("setgetDecl", setgetDecl)
                << pair("4", crtparams)
                << pair("5", getparams)
@@ -636,11 +660,14 @@ QPair<ModelGenerator::PlaceholderList, ModelGenerator::PlaceholderList> ModelGen
              << pair("11", ((objectType == Mongo) ? "Mongo" : ""));
 
     headerList << pair("7", "class QJsonArray;\n")
-               << pair("8", "    static QJsonArray getAllJson();\n");
+               << pair("8", "    static QJsonArray getAllJson();\n")
+               << pair("9", "    static QJsonArray getJson(const RequestCriteria &criteria);\n");
 
     switch (objectType) {
     case Sql:
         implList << pair("12", replaceholder(MODEL_IMPL_GETALLJSON, pair("model", modelName)));
+        implList << pair("objdir", "sqlobjects/");
+        implList << pair("18", replaceholder(MODEL_IMPL_GETJSON, pair("model", modelName)));
         implList << pair("objdir", "sqlobjects/");
         break;
 

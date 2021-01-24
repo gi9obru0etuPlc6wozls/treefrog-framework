@@ -105,6 +105,20 @@ QString SqlObjGenerator::generate(const QString &dstDir)
     }
     output += QLatin1String("    };\n\n");
 
+    // Property Index Map
+    output += QLatin1String("\n    inline static const QMap<QString, int> &propertyIndexMap() {");
+    output += QLatin1String("\n        static const QMap<QString, int> propertyIndexMap{\n");
+    it.toFront();
+    while (it.hasNext()) {
+        const QPair<QString, QString> &p = it.next();
+        output += QString("            { \"%1\",").arg(fieldNameToVariableName(p.first));
+        output += QString(" %1Object::PropertyIndex::").arg(modelName);
+        output += QString("%1 },\n").arg(fieldNameToEnumName(p.first));
+    }
+    output += QLatin1String("        };\n");
+    output += QLatin1String("        return propertyIndexMap;\n");
+    output += QLatin1String("    }\n\n");
+
     // primaryKeyIndex() method
     output += QLatin1String("    int primaryKeyIndex() const override { return ");
     QString pkName = tableSch->primaryKeyFieldName();
