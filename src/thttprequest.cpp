@@ -108,6 +108,14 @@ THttpRequest::THttpRequest(const QByteArray &header, const QString &filePath, co
     if (d->header.contentType().trimmed().toLower().startsWith(QByteArrayLiteral("multipart/form-data"))) {
         d->multipartFormData = TMultipartFormData(filePath, boundary());
         d->formItems = d->multipartFormData.postParameters;
+        // query parameter
+        QByteArrayList data = d->header.path().split('?');
+        QString query = QString::fromLatin1(data.value(1));
+
+        if (!query.isEmpty()) {
+            d->queryItems = THttpRequest::fromQuery(query);
+        }
+
     } else {
         QFile file(filePath);
         if (file.open(QIODevice::ReadOnly)) {
