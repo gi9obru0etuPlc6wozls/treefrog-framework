@@ -361,6 +361,7 @@ bool TSqlDatabasePool::setDatabaseSettings(TSqlDatabase &database, int databaseI
 
 void TSqlDatabasePool::pool(QSqlDatabase &database, bool forceClose)
 {
+    tSystemDebug("TSqlDatabasePool::pool");
     if (database.isValid()) {
         int databaseId = getDatabaseId(database);
         tSystemDebug("Pooled datbase id: %d", databaseId);
@@ -370,16 +371,17 @@ void TSqlDatabasePool::pool(QSqlDatabase &database, bool forceClose)
             tSystemDebug("Pooling commonName: %s", commonName.toStdString().c_str());
             if (!commonName.isNull()) {
                 tSystemDebug("--- Ooooweee");
-            }
-            else {
-            if (forceClose) {
-                tSystemWarn("Force close database: %s", qPrintable(database.connectionName()));
-                closeDatabase(database);
+                tSystemDebug("Pooling connection: %s", database.connectionName().toStdString().c_str());
+                TSqlDatabase xdb = TSqlDatabase::unsetInuse(database.connectionName());
             } else {
-                // pool
-                cachedDatabase[databaseId].push(database.connectionName());
-                lastCachedTime[databaseId].store((uint)std::time(nullptr));
-                tSystemDebug("Pooled database: %s", qPrintable(database.connectionName()));
+                if (forceClose) {
+                    tSystemWarn("Force close database: %s", qPrintable(database.connectionName()));
+                    closeDatabase(database);
+                } else {
+                    // pool
+                    cachedDatabase[databaseId].push(database.connectionName());
+                    lastCachedTime[databaseId].store((uint)std::time(nullptr));
+                    tSystemDebug("Pooled database: %s", qPrintable(database.connectionName()));
                 }
             }
         } else {

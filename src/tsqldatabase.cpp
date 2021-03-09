@@ -4,7 +4,10 @@
  * This software may be used and distributed according to the terms of
  * the New BSD License, which is incorporated herein by reference.
  */
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid() syscall(SYS_gettid)
 #include "tsqldatabase.h"
 #include "tsqldriverextension.h"
 #include "tsystemglobal.h"
@@ -92,11 +95,22 @@ void TSqlDatabase::setDriverExtension(TSqlDriverExtension *extension)
 
 const TSqlDatabase &TSqlDatabase::database(const QString &connectionName)
 {
+    tSystemDebug("TSqlDatabase::database tid: %ld", gettid());
+
     static TSqlDatabase defaultDatabase;
     auto *dict = dbDict();
     QReadLocker locker(&dict->lock);
 
+    int ms = 5;
+    struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+
     if (dict->contains(connectionName)) {
+        while ((*dict)[connectionName].usedBy != 0 && (*dict)[connectionName].usedBy != gettid()) {
+            tSystemDebug("Sleeping Used by: %d", (*dict)[connectionName].usedBy);
+            nanosleep(&ts, NULL);
+        };
+        (*dict)[connectionName].usedBy = gettid();
+        tSystemDebug("Used by set to: %d", (*dict)[connectionName].usedBy);
         return (*dict)[connectionName];
     } else {
         return defaultDatabase;
@@ -106,6 +120,8 @@ const TSqlDatabase &TSqlDatabase::database(const QString &connectionName)
 
 TSqlDatabase &TSqlDatabase::addDatabase(const QString &driver, const QString &connectionName)
 {
+    tSystemDebug("TSqlDatabase::addDatabase");
+
     TSqlDatabase db(QSqlDatabase::addDatabase(driver, connectionName));
     auto *dict = dbDict();
     QWriteLocker locker(&dict->lock);
@@ -115,7 +131,30 @@ TSqlDatabase &TSqlDatabase::addDatabase(const QString &driver, const QString &co
     }
 
     dict->insert(connectionName, db);
+    (*dict)[connectionName].usedBy = gettid();
     return (*dict)[connectionName];
+}
+
+const TSqlDatabase &TSqlDatabase::unsetInuse(const QString &connectionName)
+{
+    tSystemDebug("TSqlDatabase::unsetInuse: %s tid: %ld", connectionName.toStdString().c_str(), gettid());
+    static TSqlDatabase defaultDatabase;
+    auto *dict = dbDict();
+    QReadLocker locker(&dict->lock);
+
+    if (dict->contains(connectionName)) {
+        tSystemDebug("TSqlDatabase::unsetInuse Used by: %d", (*dict)[connectionName].usedBy);
+
+        if ((*dict)[connectionName].usedBy == gettid()) {
+            tSystemDebug("usedBy = 0");
+            (*dict)[connectionName].usedBy = 0;
+            return (*dict)[connectionName];
+        }
+        tSystemDebug("Violation of personal space");
+        return defaultDatabase;
+    }
+    tSystemDebug("Connection name not found");
+    return defaultDatabase;
 }
 
 

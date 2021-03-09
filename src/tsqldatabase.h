@@ -1,4 +1,7 @@
 #pragma once
+#include <unistd.h>
+#include <sys/types.h>
+#include <QMutex>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QStringList>
@@ -55,6 +58,7 @@ public:
 
     static const char *const defaultConnection;
     static const TSqlDatabase &database(const QString &connectionName = QLatin1String(defaultConnection));
+    static const TSqlDatabase &unsetInuse(const QString &connectionName = QLatin1String(defaultConnection));
     static TSqlDatabase &addDatabase(const QString &driver, const QString &connectionName = QLatin1String(defaultConnection));
     static void removeDatabase(const QString &connectionName = QLatin1String(defaultConnection));
     static bool contains(const QString &connectionName = QLatin1String(defaultConnection));
@@ -64,6 +68,8 @@ private:
     QStringList _postOpenStatements;
     bool _enableUpsert {false};
     TSqlDriverExtension *_driverExtension {nullptr};
+    
+    pid_t usedBy = 0;
 };
 
 
