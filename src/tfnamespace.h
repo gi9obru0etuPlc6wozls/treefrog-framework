@@ -277,6 +277,10 @@ namespace TSql
         NotContains,      // LIKE val%
         BeginsWith,    // LIKE val%
         EndsWith,      // LIKE %val
+        IContains,      // LIKE val%
+        INotContains,      // LIKE val%
+        IBeginsWith,    // LIKE val%
+        IEndsWith,      // LIKE %val
         Any,           // ANY (val1, ...)
         All,           // ALL (val1, ...)
     };

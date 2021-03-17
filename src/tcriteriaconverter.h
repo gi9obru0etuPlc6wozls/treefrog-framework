@@ -161,20 +161,24 @@ inline QString TCriteriaConverter<T>::criteriaToString(const QVariant &var) cons
                 sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(cri.val1, cri.varType, database));
                 break;
 
-            case TSql::BeginsWith: {
+            case TSql::BeginsWith: 
+            case TSql::IBeginsWith: {
                 QVariant bwv(cri.val1.toString() + "%");
                 sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(bwv, cri.varType, database));
                 }
                 break;
 
             case TSql::Contains: 
-            case TSql::NotContains: {
+            case TSql::NotContains: 
+            case TSql::IContains: 
+            case TSql::INotContains: {
                 QVariant bwv("%" + cri.val1.toString() + "%");
                 sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(bwv, cri.varType, database));
                 }
                 break;
 
-            case TSql::EndsWith: {
+            case TSql::EndsWith: 
+            case TSql::IEndsWith: {
                 QVariant ewv("%" + cri.val1.toString());
                 sqlString += name + TSql::formatArg(cri.op1, TSqlQuery::formatValue(ewv, cri.varType, database));
                 }

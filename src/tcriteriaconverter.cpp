@@ -47,6 +47,12 @@ public:
         insert(TSql::NotContains, " NOT LIKE %1");
         insert(TSql::BeginsWith, " LIKE %1");
         insert(TSql::EndsWith, " LIKE %1");
+
+        insert(TSql::IContains, " ILIKE %1");
+        insert(TSql::INotContains, " NOT ILIKE %1");
+        insert(TSql::IBeginsWith, " ILIKE %1");
+        insert(TSql::IEndsWith, " ILIKE %1");
+
         insert(TSql::Any, "ANY (%1)");
         insert(TSql::All, "ALL (%1)");
     }
