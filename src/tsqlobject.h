@@ -8,7 +8,6 @@
 #include <TGlobal>
 #include <TModelObject>
 
-
 class T_CORE_EXPORT TSqlObject : public TModelObject, public QSqlRecord {
     Q_OBJECT
 public:
@@ -21,10 +20,11 @@ public:
     virtual int primaryKeyIndex() const { return -1; }
     virtual int autoValueIndex() const { return -1; }
     virtual int databaseId() const { return 0; }
+    virtual QList<int> *omitColumns() { return new QList<int>; }
     void setRecord(const QSqlRecord &record, const QSqlError &error);
     bool create() override;
     bool update() override;
-    bool save() override;
+//    bool save() override;
     bool remove() override;
     bool reload();
     bool isNull() const override { return QSqlRecord::isEmpty(); }

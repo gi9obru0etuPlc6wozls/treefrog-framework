@@ -183,10 +183,10 @@ bool TMongoObject::upsert(const QVariantMap &criteria)
 }
 
 
-bool TMongoObject::save()
-{
-    return (isNull()) ? create() : update();
-}
+//bool TMongoObject::save()
+//{
+//    return (isNull()) ? create() : update();
+//}
 
 
 bool TMongoObject::remove()

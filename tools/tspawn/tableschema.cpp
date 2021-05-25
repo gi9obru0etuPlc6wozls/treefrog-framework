@@ -60,18 +60,35 @@ QList<QPair<QString, QString>> TableSchema::getFieldList() const
     QList<QPair<QString, QString>> fieldList;
     for (int i = 0; i < tableFields.count(); ++i) {
         QSqlField f = tableFields.field(i);
-        fieldList << QPair<QString, QString>(f.name(), QString(QVariant::typeToName(f.type())));
+        QString type = QString(QVariant::typeToName(f.type()));
+        QString name = f.name();
+
+std::printf("1 Field: |%s| Type: %s Type: %d\n", qPrintable(name), qPrintable(QString(QVariant::typeToName(f.type()))), f.type() );
+	if (name.compare("id") == 0 || name.compare("lock_revision") == 0 || name.endsWith("_id")) {
+            type = "QUuid";
+        }
+
+        fieldList << QPair<QString, QString>(name, type);
     }
     return fieldList;
 }
 
-
+// QMetaType::QUuid
+// QVariant::Type::Uuid
 QList<QPair<QString, QVariant::Type>> TableSchema::getFieldTypeList() const
 {
     QList<QPair<QString, QVariant::Type>> fieldList;
     for (int i = 0; i < tableFields.count(); ++i) {
         QSqlField f = tableFields.field(i);
-        fieldList << QPair<QString, QVariant::Type>(f.name(), f.type());
+        QString name = f.name();
+        QVariant::Type type = f.type();
+
+std::printf("2 Field: %s Type: %s\n", qPrintable(f.name()), qPrintable(QString(QVariant::typeToName(type))) );
+	if (name.compare("id") == 0 || name.compare("lock_revision") == 0 || name.endsWith("_id")) {
+            type = QVariant::Type::Uuid;
+        }
+
+        fieldList << QPair<QString, QVariant::Type>(name, type);
     }
     return fieldList;
 }

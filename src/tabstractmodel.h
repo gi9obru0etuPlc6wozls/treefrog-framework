@@ -10,7 +10,7 @@ class T_CORE_EXPORT TAbstractModel {
 public:
     virtual ~TAbstractModel() { }
     virtual bool create();
-    virtual bool save();
+//    virtual bool save();
     virtual bool update();
     virtual bool remove();
     virtual bool isNull() const;

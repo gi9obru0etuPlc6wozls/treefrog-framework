@@ -59,7 +59,10 @@ constexpr auto MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                             "    static int count();\n"
                                             "    static QList<%model%> getAll();\n"
                                             "%8%"
-                                            "%9%"
+                                            "    static QJsonObject getJson(const QUuid &id);\n"
+                                            "    static %model% findFirst(const RequestCriteria &criteria);\n"
+                                            "    static QJsonArray findJson(const RequestCriteria &criteria);\n"
+                                            "    QJsonObject toJsonObject() const override;\n"
                                             "\n"
                                             "private:\n"
                                             "    QSharedDataPointer<%model%Object> d;\n"
@@ -203,7 +206,7 @@ constexpr auto USER_MODEL_HEADER_FILE_TEMPLATE = "#ifndef %head%_H\n"
                                                  "    bool create() { return TAbstractModel::create(); }\n"
                                                  "    bool update() { return TAbstractModel::update(); }\n"
                                                  "%upsertDecl%"
-                                                 "    bool save()   { return TAbstractModel::save(); }\n"
+                                                 "//    bool save()   { return TAbstractModel::save(); }\n"
                                                  "    bool remove() { return TAbstractModel::remove(); }\n"
                                                  "\n"
                                                  "    static %model% authenticate(const QString &%9%, const QString &%10%);\n"
@@ -357,7 +360,13 @@ constexpr auto MODEL_IMPL_GETALLJSON = "QJsonArray %model%::getAllJson()\n"
                                        "}\n"
                                        "\n";
 
-constexpr auto MODEL_IMPL_GETJSON    = "QJsonArray %model%::getJson(const RequestCriteria &criteria)\n"
+constexpr auto MODEL_IMPL_GETJSON    = "QJsonObject %model%::getJson(const QUuid &id)\n"
+                                       "{\n"
+                                       "    TSqlORMapper<%model%Object> mapper;\n"
+                                       "    return %model%(mapper.findByPrimaryKey(id)).toJsonObject();\n"
+                                       "}\n"
+                                       "\n"
+                                       "QJsonArray %model%::findJson(const RequestCriteria &criteria)\n"
                                        "{\n"
                                        "    QJsonArray jsonArray;\n"
                                        "    auto *mapper = dynamic_cast<TSqlORMapper<%model%Object> *>(criteria.getMapper());\n"
@@ -368,6 +377,17 @@ constexpr auto MODEL_IMPL_GETJSON    = "QJsonArray %model%::getJson(const Reques
                                        "        }\n"
                                        "    }\n"
                                        "    return jsonArray;\n"
+                                       "}\n"
+                                       "\n"
+                                       "%model% %model%::findFirst(const RequestCriteria &criteria)\n"
+                                       "{\n"
+                                       "    auto *mapper = dynamic_cast<TSqlORMapper<%model%Object> *>(criteria.getMapper());\n"
+                                       "    return %model%(mapper->findFirst(criteria.getCriteria()));\n"
+                                       "}\n"
+                                       "\n" 
+                                       "QJsonObject %model%::toJsonObject() const {\n"
+                                       "    QJsonObject jsonObject = QJsonObject::fromVariantMap(this->toVariantMap());\n"
+                                       "    return jsonObject;\n"
                                        "}\n"
                                        "\n";
 
@@ -661,7 +681,13 @@ QPair<ModelGenerator::PlaceholderList, ModelGenerator::PlaceholderList> ModelGen
 
     headerList << pair("7", "class QJsonArray;\n")
                << pair("8", "    static QJsonArray getAllJson();\n")
-               << pair("9", "    static QJsonArray getJson(const RequestCriteria &criteria);\n");
+             << pair("model", modelName)
+               << pair("9",
+                            "    static QJsonObject getJson(const QUuid &id);\n"
+                            "    static %model% findFirst(const RequestCriteria &criteria);\n"
+                            "    static QJsonArray findJson(const RequestCriteria &criteria);\n"
+                            "    QJsonObject toJsonObject() const override;\n"
+                  );
 
     switch (objectType) {
     case Sql:
@@ -729,6 +755,10 @@ QString ModelGenerator::createParam(QVariant::Type type, const QString &name)
         string += QVariant::typeToName(type);
         string += ' ';
         string += var;
+        break;
+
+    case QVariant::Uuid:
+        string += QString("const %1 &%2").arg(QVariant::typeToName(type), var);
         break;
 
     default:

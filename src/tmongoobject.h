@@ -21,7 +21,7 @@ public:
     bool create() override;
     bool update() override;
     bool upsert(const QVariantMap &criteria);
-    bool save() override;
+//    bool save() override;
     bool remove() override;
     bool reload();
     bool isNull() const override { return objectId().isEmpty(); }

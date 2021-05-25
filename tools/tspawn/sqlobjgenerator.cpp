@@ -15,6 +15,7 @@ constexpr auto SQLOBJECT_HEADER_TEMPLATE = "#ifndef %1OBJECT_H\n"
                                            "\n"
                                            "#include <TSqlObject>\n"
                                            "#include <QSharedData>\n"
+                                           "#include <QUuid>\n"
                                            "\n\n"
                                            "class T_MODEL_EXPORT %2Object : public TSqlObject, public QSharedData\n"
                                            "{\n"
@@ -118,6 +119,23 @@ QString SqlObjGenerator::generate(const QString &dstDir)
     output += QLatin1String("        };\n");
     output += QLatin1String("        return propertyIndexMap;\n");
     output += QLatin1String("    }\n\n");
+
+
+    output += QString("    QList<int> *omitColumns() override {\n");
+    output += QString("\n");
+    output += QString("        static QList<int> *list = nullptr;\n");
+    output += QString("\n");
+    output += QString("        if (list == nullptr) {\n");
+    output += QString("            list = new QList<int>{\n");
+    output += QString("                %1Object::PropertyIndex::Id,\n").arg(modelName);
+    output += QString("                %1Object::PropertyIndex::CreatedAt,\n").arg(modelName);
+    output += QString("                %1Object::PropertyIndex::UpdatedAt,\n").arg(modelName);
+    output += QString("                %1Object::PropertyIndex::CreatedById,\n").arg(modelName);
+    output += QString("                %1Object::PropertyIndex::UpdatedById\n").arg(modelName);
+    output += QString("            };\n");
+    output += QString("        }\n");
+    output += QString("        return list;\n");
+    output += QString("    }\n\n");
 
     // primaryKeyIndex() method
     output += QLatin1String("    int primaryKeyIndex() const override { return ");

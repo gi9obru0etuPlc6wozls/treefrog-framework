@@ -52,10 +52,10 @@ bool TAbstractModel::create()
   If the model exists in the data storage, calls update();
   otherwise calls create().
  */
-bool TAbstractModel::save()
-{
-    return modelData()->save();
-}
+//bool TAbstractModel::save()
+//{
+//    return modelData()->save();
+//}
 
 /*!
   Updates the model to the data storage.
