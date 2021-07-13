@@ -214,10 +214,12 @@ bool THttpSocket::waitForReadyReadRequest(int msecs)
                 if (_fileBuffer.write(_readBuffer.data(), _readBuffer.size()) < 0) {
                     throw RuntimeException(QLatin1String("write error: ") + _fileBuffer.fileName(), __FILE__, __LINE__);
                 }
-                _lengthToRead = qMax(_lengthToRead - _readBuffer.size(), 0LL);
+                //_lengthToRead = qMax(_lengthToRead - _readBuffer.size(), 0LL);
+                _lengthToRead = qMax(_lengthToRead - len, 0LL);
                 _readBuffer.resize(0);
             } else {
-                _lengthToRead = qMax(_lengthToRead - _readBuffer.size(), 0LL);
+                //_lengthToRead = qMax(_lengthToRead - _readBuffer.size(), 0LL);
+                _lengthToRead = qMax(_lengthToRead - len, 0LL);
             }
 
         } else if (_lengthToRead < 0) {
