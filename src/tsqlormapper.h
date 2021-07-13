@@ -29,7 +29,7 @@ public:
     virtual int findCount(const TCriteria &cri = TCriteria()) = 0;
     virtual int findCountBy(int column, const QVariant &value) = 0;
     virtual int find(const TCriteria &cri = TCriteria()) = 0;
-    int findBy(int column, QVariant value) { throw RuntimeException("What is my purpose?", __FILE__, __LINE__); };
+    int findBy(int column, QVariant value) { (void) column; (void) value; throw RuntimeException("What is my purpose?", __FILE__, __LINE__); };
     virtual int findIn(int column, const QVariantList &values) = 0;
 };
 
