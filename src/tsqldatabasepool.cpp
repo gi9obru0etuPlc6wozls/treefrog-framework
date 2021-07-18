@@ -149,13 +149,18 @@ QSqlDatabase TSqlDatabasePool::x_database(int databaseId, const QString &commonN
         tSystemDebug("SQL database database type: %s", type.toStdString().c_str());
 
         auto dbName = QString().sprintf(CONN_COMMONNAME_FORMAT, databaseId, commonName.toLatin1().constData());
-        tSystemDebug("Connection name: %s", dbName.toLatin1().constData());
+        tSystemDebug("Connection name: %s", dbName.toStdString().c_str());
 
+        mutex.lock();
         TSqlDatabase xdb = TSqlDatabase::database(dbName);
         if (xdb.connectionName().isEmpty()) {
+            tSystemDebug("Adding Database. Name: %s", dbName.toStdString().c_str());
             xdb = TSqlDatabase::addDatabase(type, dbName);
-            setCertAuthSettings(xdb, databaseId, commonName);
-            tSystemDebug("Add Database successfully. name:%s", qPrintable(xdb.connectionName()));
+            if (!setCertAuthSettings(xdb, databaseId, commonName)) {
+                tSystemError("setCertAuthSettings failed");
+                return QSqlDatabase();
+            }
+            tSystemDebug("Add Database successfully. Name: %s", xdb.connectionName().toStdString().c_str());
         }
 
         if (Q_UNLIKELY(!xdb.sqlDatabase().open())) {
@@ -164,7 +169,9 @@ QSqlDatabase TSqlDatabasePool::x_database(int databaseId, const QString &commonN
                          qPrintable(xdb.sqlDatabase().lastError().text()));
             return QSqlDatabase();
         }
+        mutex.unlock();
 
+        tSystemDebug("Caching %s", dbName.toStdString().c_str());
         userDbCache->cache(dbName);
 
         tSystemDebug("SQL database opened successfully (env:%s)", qPrintable(Tf::app()->databaseEnvironment()));
@@ -229,6 +236,7 @@ bool TSqlDatabasePool::setCertAuthSettings(TSqlDatabase &database, int databaseI
     auto settings = Tf::app()->sqlDatabaseSettings(databaseId);
 
     QString databaseName = settings.value("DatabaseName").toString().trimmed();
+    tSystemDebug("databaseName: |%s|", databaseName.toStdString().c_str());
     if (databaseName.isEmpty()) {
         tError("Database name empty string");
         return false;
@@ -245,12 +253,16 @@ bool TSqlDatabasePool::setCertAuthSettings(TSqlDatabase &database, int databaseI
         }
     }
     database.sqlDatabase().setDatabaseName(databaseName);
-    tSystemDebug("Database databaseName: %s", database.sqlDatabase().databaseName().toStdString().c_str());
+    tSystemDebug("Database databaseName: |%s|", database.sqlDatabase().databaseName().toStdString().c_str());
 
     QString hostName = settings.value("HostName").toString().trimmed();
     if (!hostName.isEmpty()) {
         database.sqlDatabase().setHostName(hostName);
         tSystemDebug("Database hostName: %s", database.sqlDatabase().hostName().toStdString().c_str());
+    }
+    else {
+        tError("Hostname empty string");
+        return false;
     }
 
     int port = settings.value("Port").toInt();

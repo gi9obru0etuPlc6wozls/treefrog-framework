@@ -102,9 +102,10 @@ public:
                 //tSystemDebug("second: %ld", i->second);
                 tSystemDebug("time: %ld", age);
                 if (TSqlDatabase::contains(i->first)) {
-                    tSystemDebug("Closing & removing db: %s", i->first.toStdString().c_str());
+                    tSystemDebug("Closing db: %s", i->first.toStdString().c_str());
                     QSqlDatabase db = TSqlDatabase::database(i->first).sqlDatabase();
                     db.close();
+                    tSystemDebug("Removing db: %s", i->first.toStdString().c_str());
                     TSqlDatabase::removeDatabase(i->first);
                 }
                 tSystemDebug("Erasing from cache: %s", i->first.toStdString().c_str());
@@ -165,6 +166,7 @@ private:
     TStack<QString> *availableNames {nullptr};
     max_size_t maxConnects{0};
     QBasicTimer timer;
+    QMutex mutex;
 
     T_DISABLE_COPY(TSqlDatabasePool)
 
