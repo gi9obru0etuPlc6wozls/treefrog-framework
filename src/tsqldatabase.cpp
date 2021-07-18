@@ -112,6 +112,7 @@ const TSqlDatabase &TSqlDatabase::database(const QString &connectionName)
         while (i < count && !(*dict)[connectionName]._tid.testAndSetRelease(0, tid)) {
             tSystemDebug("Connection held by %d. Sleeping...", (*dict)[connectionName]._tid.loadAcquire());
             nanosleep(&ts, NULL);
+            i++;
         }
         if (i == count) {
              tSystemDebug("Database not available");
@@ -124,6 +125,36 @@ const TSqlDatabase &TSqlDatabase::database(const QString &connectionName)
         return defaultDatabase;
     }
 }
+
+void TSqlDatabase::setInuse(const QString &connectionName)
+{
+    pid_t tid = gettid();
+    tSystemDebug("TSqlDatabase::wait tid: %d connectionName: %s", tid, connectionName.toStdString().c_str());
+
+    auto *dict = dbDict();
+    QReadLocker locker(&dict->xlock);
+
+    const int ms = 50;
+    const struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+
+    if (dict->contains(connectionName) && (*dict)[connectionName]._tid.loadAcquire() != tid) {
+        const int count = 16;
+        int i = 0;
+        while (i < count && !(*dict)[connectionName]._tid.testAndSetRelease(0, tid)) {
+            tSystemDebug("Wait connection held by %d. Sleeping...", (*dict)[connectionName]._tid.loadAcquire());
+            nanosleep(&ts, NULL);
+            i++;
+        }
+        if (i == count) {
+             tSystemDebug("Database not available");
+             throw new std::runtime_error("Database not available");
+        }
+        tSystemDebug("Wait Used by set to: %d", tid);
+    } else {
+        tSystemDebug("Wait connetion not found");
+    }
+}
+
 
 TSqlDatabase &TSqlDatabase::addDatabase(const QString &driver, const QString &connectionName)
 {

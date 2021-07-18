@@ -1,6 +1,7 @@
 #pragma once
 #include <QSqlDatabase>
 #include <TGlobal>
+#include "tsqldatabase.h"
 
 /*!
   \class Transaction
@@ -14,7 +15,7 @@ public:
     ~TSqlTransaction();
 
     TSqlTransaction &operator=(const TSqlTransaction &) = default;
-    QSqlDatabase &database() { return _database; }
+    TSqlDatabase &tdatabase() { return _tdatabase; }
     bool begin();
     bool commit();
     bool rollback();
@@ -25,7 +26,7 @@ public:
     const QString &commonName() const;
 
 private:
-    QSqlDatabase _database;
+    TSqlDatabase _tdatabase;
     bool _enabled {true};
     bool _active {false};
     QString _connectionName;

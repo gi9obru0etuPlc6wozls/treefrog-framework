@@ -56,7 +56,7 @@ QSqlDatabase &TDatabaseContext::getSqlDatabase(int id)
     TSqlTransaction &tx = sqlDatabases[id];
     tSystemDebug("tx.commonName: %s", tx.commonName().toStdString().c_str());
 
-    QSqlDatabase &db = tx.database();
+    QSqlDatabase &db = tx.tdatabase().sqlDatabase();
 
     if (db.isValid() && tx.isActive()) {
         return db;
@@ -140,7 +140,7 @@ void TDatabaseContext::commitTransactions()
     for (QMap<int, TSqlTransaction>::iterator it = sqlDatabases.begin(); it != sqlDatabases.end(); ++it) {
         TSqlTransaction &tx = it.value();
         tx.commit();
-        TSqlDatabasePool::instance()->pool(tx.database());
+        TSqlDatabasePool::instance()->pool(tx.tdatabase().sqlDatabase());
     }
 }
 
@@ -156,7 +156,7 @@ bool TDatabaseContext::commitTransaction(int id)
 
     TSqlTransaction &tx = sqlDatabases[id];
     res = tx.commit();
-    TSqlDatabasePool::instance()->pool(sqlDatabases[id].database());
+    TSqlDatabasePool::instance()->pool(sqlDatabases[id].tdatabase().sqlDatabase());
     return res;
 }
 
@@ -166,7 +166,7 @@ void TDatabaseContext::rollbackTransactions()
     for (QMap<int, TSqlTransaction>::iterator it = sqlDatabases.begin(); it != sqlDatabases.end(); ++it) {
         TSqlTransaction &tx = it.value();
         tx.rollback();
-        TSqlDatabasePool::instance()->pool(tx.database(), true);
+        TSqlDatabasePool::instance()->pool(tx.tdatabase().sqlDatabase(), true);
     }
 }
 
@@ -180,7 +180,7 @@ bool TDatabaseContext::rollbackTransaction(int id)
         return res;
     }
     res = sqlDatabases[id].rollback();
-    TSqlDatabasePool::instance()->pool(sqlDatabases[id].database(), true);
+    TSqlDatabasePool::instance()->pool(sqlDatabases[id].tdatabase().sqlDatabase(), true);
     return res;
 }
 

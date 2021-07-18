@@ -168,13 +168,14 @@ QSqlDatabase TSqlDatabasePool::x_database(int databaseId, const QString &commonN
             tSystemError("SQL database open error: %s %s", qPrintable(xdb.sqlDatabase().connectionName()),
                          qPrintable(xdb.sqlDatabase().lastError().text()));
             return QSqlDatabase();
+        } else {
+            tSystemDebug("SQL database opened successfully (env:%s)", qPrintable(Tf::app()->databaseEnvironment()));
         }
         mutex.unlock();
 
         tSystemDebug("Caching %s", dbName.toStdString().c_str());
         userDbCache->cache(dbName);
 
-        tSystemDebug("SQL database opened successfully (env:%s)", qPrintable(Tf::app()->databaseEnvironment()));
         tSystemDebug("Gets database: %s", qPrintable(xdb.sqlDatabase().connectionName()));
         return xdb.sqlDatabase();
     } else {

@@ -59,6 +59,7 @@ public:
 
     static const char *const defaultConnection;
     static const TSqlDatabase &database(const QString &connectionName = QLatin1String(defaultConnection));
+    static void setInuse(const QString &connectionName);
     static const TSqlDatabase &unsetInuse(const QString &connectionName = QLatin1String(defaultConnection));
     static TSqlDatabase &addDatabase(const QString &driver, const QString &connectionName = QLatin1String(defaultConnection));
     static void removeDatabase(const QString &connectionName = QLatin1String(defaultConnection));

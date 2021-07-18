@@ -23,6 +23,8 @@ typedef std::list<key_value_pair_t>::iterator list_iterator_t;
 typedef std::unordered_map<QString, list_iterator_t> item_map_t;
 typedef std::list<key_value_pair_t> item_list_t;
 typedef int max_size_t;
+namespace std { template<> struct hash<QString> { std::size_t operator()(const QString &s) const noexcept { return (size_t) qHash(s); } }; }
+
 
 /*
 namespace std {
