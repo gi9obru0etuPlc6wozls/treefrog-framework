@@ -166,17 +166,17 @@ void TActionContext::execute(THttpRequest &request, int sid)
             // Database Transaction
             if (method != Tf::Options ) {
             for (int databaseId = 0; databaseId < Tf::app()->sqlDatabaseSettingsCount(); ++databaseId) {
-                    tSystemDebug("Database Transaction: %d", databaseId);
+                    tSystemDebug("Database Id Transaction: %d", databaseId);
                     auto dbSettings = Tf::app()->sqlDatabaseSettings(databaseId);
                     auto commonNameHeader = dbSettings.value("commonName").toByteArray();
                     if (!commonNameHeader.isEmpty()) {
     
                         auto commonName = reqHeader.rawHeader(commonNameHeader);
-                        tSystemDebug("commonNameHeader: %s", commonNameHeader.toStdString().c_str());
+                        tSystemDebug("commonNameHeader: |%s|", commonNameHeader.toStdString().c_str());
                         if (commonName.isEmpty()) {
                             throw ClientErrorException(Tf::BadRequest, __FILE__, __LINE__);
                         }
-                        tSystemDebug("commonName: %s", commonName.toStdString().c_str());
+                        tSystemDebug("commonName: |%s|", commonName.toStdString().c_str());
     
                         QString certPath = QString("%1/%2_crt.pem").arg(
                                 dbSettings.value("certDir").toString(),

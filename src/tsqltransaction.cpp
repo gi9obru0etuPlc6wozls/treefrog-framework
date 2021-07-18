@@ -117,6 +117,7 @@ bool TSqlTransaction::rollback()
 
 void TSqlTransaction::setCommonName(const QString &commonName)
 {
+    tSystemDebug("TSqlTransaction::setCommonName: %s", commonName.toStdString().c_str());
     _commonName = commonName;
 }
 

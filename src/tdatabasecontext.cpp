@@ -44,6 +44,7 @@ TDatabaseContext::~TDatabaseContext()
 
 QSqlDatabase &TDatabaseContext::getSqlDatabase(int id)
 {
+    tSystemDebug("TDatabaseContext::getSqlDatabase: %d" , id);
     if (id < 0) {
         return invalidDb;  // invalid database
     }
@@ -53,6 +54,8 @@ QSqlDatabase &TDatabaseContext::getSqlDatabase(int id)
     }
 
     TSqlTransaction &tx = sqlDatabases[id];
+    tSystemDebug("tx.commonName: %s", tx.commonName().toStdString().c_str());
+
     QSqlDatabase &db = tx.database();
 
     if (db.isValid() && tx.isActive()) {
@@ -71,6 +74,7 @@ QSqlDatabase &TDatabaseContext::getSqlDatabase(int id)
         }
         TSqlDatabasePool::instance()->pool(db, true);
     } while (++n < 2);  // try two times
+    tSystemDebug("getSqlDatabase loop exited");
 
     idleElapsed = (uint)std::time(nullptr);
     return db;
@@ -116,6 +120,7 @@ void TDatabaseContext::release()
     idleElapsed = 0;
 }
 
+
 void TDatabaseContext::setTransactionEnabled(bool enable, int id, const QString &commonName)
 {
     if (id < 0) {
@@ -125,7 +130,7 @@ void TDatabaseContext::setTransactionEnabled(bool enable, int id, const QString 
 
     if (!commonName.isEmpty()) {
         sqlDatabases[id].setCommonName(commonName);
-}
+    }
 
     return sqlDatabases[id].setEnabled(enable);
 }
