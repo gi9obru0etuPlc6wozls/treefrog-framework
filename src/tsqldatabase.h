@@ -39,6 +39,7 @@ public:
 #endif
 
     explicit TSqlDatabase(const QSqlDatabase &database = QSqlDatabase());
+    TSqlDatabase(const QSqlDatabase &database, const int tid = 0);
     TSqlDatabase(const TSqlDatabase &other);
     ~TSqlDatabase() { }
     TSqlDatabase &operator=(const TSqlDatabase &other);
@@ -68,14 +69,20 @@ private:
     QStringList _postOpenStatements;
     bool _enableUpsert {false};
     TSqlDriverExtension *_driverExtension {nullptr};
-    
-    pid_t usedBy = 0;
+
+    QAtomicInt _tid;
 };
 
 
 inline TSqlDatabase::TSqlDatabase(const QSqlDatabase &database) :
     _sqlDatabase(database)
 {
+}
+
+inline TSqlDatabase::TSqlDatabase(const QSqlDatabase &database, const int tid) :
+    _sqlDatabase(database)
+{
+    _tid.storeRelease(tid);
 }
 
 inline TSqlDatabase::TSqlDatabase(const TSqlDatabase &other) :

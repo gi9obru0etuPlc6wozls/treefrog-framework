@@ -18,7 +18,7 @@
 
 class TDatabaseDict : public QMap<QString, TSqlDatabase> {
 public:
-    mutable QReadWriteLock lock;
+    mutable QReadWriteLock xlock;
 };
 Q_GLOBAL_STATIC(TDatabaseDict, dbDict)
 
@@ -95,63 +95,68 @@ void TSqlDatabase::setDriverExtension(TSqlDriverExtension *extension)
 
 const TSqlDatabase &TSqlDatabase::database(const QString &connectionName)
 {
-    tSystemDebug("TSqlDatabase::database tid: %ld", gettid());
+    pid_t tid = gettid();
+    tSystemDebug("TSqlDatabase::database tid: %d connectionName: %s", tid, connectionName.toStdString().c_str());
 
     static TSqlDatabase defaultDatabase;
+    defaultDatabase._tid = tid;
     auto *dict = dbDict();
-    QReadLocker locker(&dict->lock);
+    QReadLocker locker(&dict->xlock);
 
-    int ms = 5;
-    struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+    const int ms = 50;
+    const struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
 
     if (dict->contains(connectionName)) {
-        while ((*dict)[connectionName].usedBy != 0 && (*dict)[connectionName].usedBy != gettid()) {
-            tSystemDebug("Sleeping Used by: %d", (*dict)[connectionName].usedBy);
+        const int count = 4;
+        int i = 0;
+        while (i < count && !(*dict)[connectionName]._tid.testAndSetRelease(0, tid)) {
+            tSystemDebug("Connection held by %d. Sleeping...", (*dict)[connectionName]._tid.loadAcquire());
             nanosleep(&ts, NULL);
-        };
-        (*dict)[connectionName].usedBy = gettid();
-        tSystemDebug("Used by set to: %d", (*dict)[connectionName].usedBy);
+        }
+        if (i == count) {
+             tSystemDebug("Database not available");
+             throw new std::runtime_error("Database not available");
+        }
+        tSystemDebug("Used by set to: %d", tid);
         return (*dict)[connectionName];
     } else {
+        tSystemDebug("Returning defaultDatabase");
         return defaultDatabase;
     }
 }
 
-
 TSqlDatabase &TSqlDatabase::addDatabase(const QString &driver, const QString &connectionName)
 {
-    tSystemDebug("TSqlDatabase::addDatabase");
+    pid_t tid = gettid();
+    tSystemDebug("TSqlDatabase::addDatabase tid: %d connectionName: %s", tid, connectionName.toStdString().c_str());
 
-    TSqlDatabase db(QSqlDatabase::addDatabase(driver, connectionName));
     auto *dict = dbDict();
-    QWriteLocker locker(&dict->lock);
+    QWriteLocker locker(&dict->xlock);
 
     if (dict->contains(connectionName)) {
         dict->take(connectionName);
     }
 
+    TSqlDatabase db(QSqlDatabase::addDatabase(driver, connectionName), tid);
     dict->insert(connectionName, db);
-    (*dict)[connectionName].usedBy = gettid();
     return (*dict)[connectionName];
 }
 
 const TSqlDatabase &TSqlDatabase::unsetInuse(const QString &connectionName)
 {
-    tSystemDebug("TSqlDatabase::unsetInuse: %s tid: %ld", connectionName.toStdString().c_str(), gettid());
+    pid_t tid = gettid();
+    tSystemDebug("TSqlDatabase::unsetInuse: %s tid: %d", connectionName.toStdString().c_str(), tid);
     static TSqlDatabase defaultDatabase;
     auto *dict = dbDict();
-    QReadLocker locker(&dict->lock);
+    QReadLocker locker(&dict->xlock);
 
-    if (dict->contains(connectionName)) {
-        tSystemDebug("TSqlDatabase::unsetInuse Used by: %d", (*dict)[connectionName].usedBy);
-
-        if ((*dict)[connectionName].usedBy == gettid()) {
-            tSystemDebug("usedBy = 0");
-            (*dict)[connectionName].usedBy = 0;
-            return (*dict)[connectionName];
+    if (dict->contains(connectionName) && (*dict)[connectionName]._tid.loadAcquire() != 0) {
+        tSystemDebug("Current tid: %d", (*dict)[connectionName]._tid.loadAcquire());
+        if (!(*dict)[connectionName]._tid.testAndSetRelease(tid, 0)) {
+             tSystemDebug("Violation of personal space: %d", (*dict)[connectionName]._tid.loadAcquire());
+             return defaultDatabase;
         }
-        tSystemDebug("Violation of personal space");
-        return defaultDatabase;
+        return (*dict)[connectionName];
     }
     tSystemDebug("Connection name not found");
     return defaultDatabase;
@@ -161,7 +166,7 @@ const TSqlDatabase &TSqlDatabase::unsetInuse(const QString &connectionName)
 void TSqlDatabase::removeDatabase(const QString &connectionName)
 {
     auto *dict = dbDict();
-    QWriteLocker locker(&dict->lock);
+    QWriteLocker locker(&dict->xlock);
     dict->take(connectionName);
     QSqlDatabase::removeDatabase(connectionName);
 }
@@ -170,7 +175,7 @@ void TSqlDatabase::removeDatabase(const QString &connectionName)
 bool TSqlDatabase::contains(const QString &connectionName)
 {
     auto *dict = dbDict();
-    QReadLocker locker(&dict->lock);
+    QReadLocker locker(&dict->xlock);
     return dict->contains(connectionName);
 }
 
