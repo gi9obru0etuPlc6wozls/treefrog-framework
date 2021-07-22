@@ -141,17 +141,17 @@ void TSqlDatabase::setInuse(const QString &connectionName)
         const int count = 16;
         int i = 0;
         while (i < count && !(*dict)[connectionName]._tid.testAndSetRelease(0, tid)) {
-            tSystemDebug("Wait connection held by %d. Sleeping...", (*dict)[connectionName]._tid.loadAcquire());
+            tSystemDebug("setInuse connection held by %d. Sleeping...", (*dict)[connectionName]._tid.loadAcquire());
             nanosleep(&ts, NULL);
             i++;
         }
         if (i == count) {
-             tSystemDebug("Database not available");
+             tSystemDebug("setInuse Database not available");
              throw new std::runtime_error("Database not available");
         }
-        tSystemDebug("Wait Used by set to: %d", tid);
+        tSystemDebug("setInuse Used by set to: %d", tid);
     } else {
-        tSystemDebug("Wait connetion not found");
+        tSystemDebug("setInuse connetion not found");
     }
 }
 
